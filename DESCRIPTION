@@ -1,9 +1,17 @@
 Package: DeepSuRv
-Title: What the Package Does (One Line, Title Case)
+Title: Deep Learning CPH Modeling to be Used in Conjunction with Counterfactuals
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Authors@R: c(
+  person("Olivia", "Spanish", email = "oliviasp@umich.edu", role = c("aut", "cre")),
+  person("Keanu", "Keopimpha", email = "keanuk@umich.edu", role = "aut"),
+  person("Maria", "Murphy", email = "mariamur@umich.edu", role = "aut"),
+  person("Yanyi", "Zhang", email = "zyanyi@umich.edu", role = "aut"))
+Description: This is a deep-learning application of the Cox proportional 
+    hazards model. It learns model covariates during the training process and 
+    does not require them to be specified before the formation of the model, 
+    like in traditional Cox regression. This package is meant to be used in 
+    conjunction with the `survex` R package to produce counterfactuals for the 
+    model outputs.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -11,3 +19,5 @@ RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Imports: 
+    torch
