@@ -32,6 +32,7 @@ negative_log_likelihood <- function(self, E, deterministic = FALSE) {
 #' @export
 #'
 #' @examples
+#' get_optimizer_from_str("adam")
 get_optimizer_from_str <- function(update_fn) {
   if (update_fn == "sgd") {
     return(lasagne$updates$sgd)         #translated lasagne.updates.sgd as lasagne$updates$sgd
@@ -44,6 +45,10 @@ get_optimizer_from_str <- function(update_fn) {
 }
 
 #' Bootstrap Metric Evaluation
+#'
+#'This function performs bootstrap resampling on a dataset to estimate the variability of a given performance metric.
+#'Internally, it defines a helper function {sample_dataset(dataset, sample_idx)}
+#'that drawsbootstrap samples based on the provided indices.
 #'
 #' @param metric_fxn A function that computes a scalar metric value from a sampled dataset.
 #' @param dataset A named list containing the data vectors to resample.
@@ -60,18 +65,12 @@ get_optimizer_from_str <- function(update_fn) {
 #' metric_fxn <- function(x) mean(x)
 #' bootstrap_metric(metric_fxn, dataset, N = 10)
 bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
-#' Title
-#'
-#' @param dataset
-#' @param sample_idx
-#'
-#' @returns
-#' @export
-#'
-#' @examples
   sample_dataset <- function(dataset, sample_idx) {
     # In the original Python version, the input "dataset" is a dictionary.
     # In R, we use a named list to represent the same key–value structure. Each key corresponds to a vector.
+    # sample_dataset is a helper function for bootstrap_metric()
+    # dataset: named list (e.g., list(x, t, e))
+    # sample_idx: integer vector of resampled indices
     sampled_dataset <- list()
     for (key in names(dataset)) {
       sampled_dataset[[key]] <- dataset[[key]][sample_idx]
@@ -100,13 +99,12 @@ bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
 
 #' Calculate Recommended and Anti-Recommended Treatment Groups
 #'
-#' @param rec_trt A numeric or integer vector representing the model's recommended treatment for each sample.
+#' @param rec_trt Numeric vector of recommended treatments (e.g., 0/1).
 #' @param true_trt A numeric or integer vector giving the true treatment assignments.
 #' @param dataset A named list containing elements {t}, {e}, and {x}.
 #' @param print_metrics Logical; if TRUE, prints median times for recommended and anti-recommended groups.
 #'
-#' @returns
-#' A list containing:
+#' @returns A list containing:
 #' {rec_t}Times for recommended cases.
 #' {rec_e}Event indicators for recommended cases.
 #' {antirec_t}Times for anti-recommended cases.
@@ -115,10 +113,13 @@ bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
 #' @export
 #'
 #' @examples
-#' dataset <- list(t = c(1, 2, 3), e = c(1, 1, 0), x = c(0, 1, 1))
+#' dataset <- list(
+#'   x = matrix(c(1, 0, 1, 0, 1, 0), ncol = 2),
+#'   t = c(1, 2, 3),
+#'   e = c(1, 0, 1)
+#' )
 #' rec_trt <- c(0, 1, 1)
-#' true_trt <- c(0, 1, 0)
-#' calculate_recs_and_antirecs(rec_trt, true_trt, dataset, print_metrics = FALSE)
+#' calculate_recs_and_antirecs(rec_trt, 1, dataset, print_metrics = FALSE)
 calculate_recs_and_antirecs <- function(rec_trt, true_trt, dataset, print_metrics = TRUE) {
   if (is.numeric(true_trt)) {
     true_trt <- dataset$x[, true_trt]
