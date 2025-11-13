@@ -15,12 +15,12 @@ Description: This is a deep-learning application of the Cox proportional
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-<<<<<<< HEAD
 Imports: 
-    torch
+    torch,
+    jsonlite
 URL: https://github.com/orspanish/DeepSuRv
 BugReports: https://github.com/orspanish/DeepSuRv/issues
