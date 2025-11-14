@@ -22,5 +22,9 @@ Config/testthat/edition: 3
 Imports: 
     torch,
     jsonlite
+Imports: hdf5r, torch
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 URL: https://github.com/orspanish/DeepSuRv
 BugReports: https://github.com/orspanish/DeepSuRv/issues

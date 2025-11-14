@@ -2,4 +2,9 @@
 
 export(DeepSuRv)
 import(jsonlite)
+export(format_dataset_to_df)
+export(load_datasets)
+export(prepare_data)
+import(hdf5r)
 import(torch)
+importFrom(stats,sd)
