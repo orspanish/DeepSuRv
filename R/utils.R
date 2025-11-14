@@ -6,12 +6,11 @@
 #' @param deterministic Logical; if TRUE, calculates deterministic network outputs.
 #'
 #' @returns A single numeric value representing the negative partial log-likelihood.
-#' @export
-#'
 #' @examples
 #' fake_self <- list(risk = function(deterministic) c(0.1, 0.2, 0.3))
 #' E <- c(1, 0, 1)
 #' negative_log_likelihood(fake_self, E)
+#' @export
 negative_log_likelihood <- function(self, E, deterministic = FALSE) {
   #translated _negative_log_likelihood in python as negative_log_likelihood
   risk <- self$risk(deterministic)
@@ -24,15 +23,9 @@ negative_log_likelihood <- function(self, E, deterministic = FALSE) {
   return(neg_likelihood)
 }
 
-#' Retrieve Optimizer Function by Name
-#'
-#' @param update_fn A character string specifying the optimizer name.
-#'
-#' @returns The corresponding optimizer function (if found), or NULL (if the name is not recognized).
-#' @export
-#'
-#' @examples
-#' get_optimizer_from_str("adam")
+# Internal helper: Retrieve optimizer function by name.
+# the input update_fn is a character string specifying the optimizer name.
+# This function maps a string (e.g., "adam") to the corresponding Lasagne optimizer function.
 get_optimizer_from_str <- function(update_fn) {
   if (update_fn == "sgd") {
     return(lasagne$updates$sgd)         #translated lasagne.updates.sgd as lasagne$updates$sgd
@@ -44,26 +37,8 @@ get_optimizer_from_str <- function(update_fn) {
   return(NULL)
 }
 
-#' Bootstrap Metric Evaluation
-#'
-#'This function performs bootstrap resampling on a dataset to estimate the variability of a given performance metric.
-#'Internally, it defines a helper function {sample_dataset(dataset, sample_idx)}
-#'that drawsbootstrap samples based on the provided indices.
-#'
-#' @param metric_fxn A function that computes a scalar metric value from a sampled dataset.
-#' @param dataset A named list containing the data vectors to resample.
-#' @param N Integer; the number of bootstrap samples to draw (default = 100).
-#'
-#' @returns
-#' A list containing:
-#' {mean_val}The mean of the metric across bootstrap samples.
-#' {confidence_interval}The 95\% confidence interval of the metric.
-#' @export
-#'
-#' @examples
-#' dataset <- list(x = 1:5)
-#' metric_fxn <- function(x) mean(x)
-#' bootstrap_metric(metric_fxn, dataset, N = 10)
+# Internal helper: bootstrap performance metric performs bootstrap resampling on a dataset to estimate variability.
+# Not exported, only used internally.
 bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
   sample_dataset <- function(dataset, sample_idx) {
     # In the original Python version, the input "dataset" is a dictionary.
@@ -97,29 +72,8 @@ bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
   ))
 }
 
-#' Calculate Recommended and Anti-Recommended Treatment Groups
-#'
-#' @param rec_trt Numeric vector of recommended treatments (e.g., 0/1).
-#' @param true_trt A numeric or integer vector giving the true treatment assignments.
-#' @param dataset A named list containing elements {t}, {e}, and {x}.
-#' @param print_metrics Logical; if TRUE, prints median times for recommended and anti-recommended groups.
-#'
-#' @returns A list containing:
-#' {rec_t}Times for recommended cases.
-#' {rec_e}Event indicators for recommended cases.
-#' {antirec_t}Times for anti-recommended cases.
-#' {antirec_e}Event indicators for anti-recommended cases.
-#'
-#' @export
-#'
-#' @examples
-#' dataset <- list(
-#'   x = matrix(c(1, 0, 1, 0, 1, 0), ncol = 2),
-#'   t = c(1, 2, 3),
-#'   e = c(1, 0, 1)
-#' )
-#' rec_trt <- c(0, 1, 1)
-#' calculate_recs_and_antirecs(rec_trt, 1, dataset, print_metrics = FALSE)
+# Internal helper: calculate recommended vs anti-recommended groups.
+# Used for evaluating treatment recommendations.
 calculate_recs_and_antirecs <- function(rec_trt, true_trt, dataset, print_metrics = TRUE) {
   if (is.numeric(true_trt)) {
     true_trt <- dataset$x[, true_trt]
@@ -154,19 +108,8 @@ calculate_recs_and_antirecs <- function(rec_trt, true_trt, dataset, print_metric
   ))
 }
 
-#' Standardize Dataset Features
-#'
-#' @param dataset A named list containing the numeric vector {x} to be standardized.
-#' @param offset Numeric value used to shift the data (subtract from each element).
-#' @param scale Numeric value used to rescale the data (divide each element).
-#'
-#' @returns
-#' A list with the same structure as {dataset}, but with standardized {x}.
-#' @export
-#'
-#' @examples
-#' ds <- list(x = c(2, 4, 6))
-#' standardize_dataset(ds, offset = 2, scale = 2)
+# Internal helper: standardize dataset features.
+# Performs (x - offset) / scale on dataset$x.
 standardize_dataset <- function(dataset, offset, scale) {
   norm_ds <- dataset
   norm_ds$x <- (norm_ds$x - offset) / scale
