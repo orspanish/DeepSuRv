@@ -100,6 +100,7 @@ DeepSuRv <- nn_module(
     as.numeric(out$squeeze())
   },
 
+  # -----------------------------------------------------------------------
   # Negative log partial likelihood (Cox)
   negative_log_likelihood = function(x, time, event) {
     pred <- self$forward(x)$squeeze()
@@ -113,6 +114,7 @@ DeepSuRv <- nn_module(
     loss
   },
 
+  # -----------------------------------------------------------------------
   # Loss + updates
   get_loss_updates = function(x, time, event,
                               L1_reg = 0.0, L2_reg = 0.001,
@@ -154,6 +156,7 @@ DeepSuRv <- nn_module(
     list(loss = loss, optimizer = optimizer)
   },
 
+  # -----------------------------------------------------------------------
   # Train + valid functions (wrappers for theano-style callable)
   get_train_valid_fn = function(L1_reg, L2_reg, learning_rate, ...) {
 
@@ -183,6 +186,7 @@ DeepSuRv <- nn_module(
     list(train_fn = train_fn, valid_fn = valid_fn)
   },
 
+  # -----------------------------------------------------------------------
   train_model = function(train_data, n_epochs = 50,
                          valid_data = NULL, early_stopping = TRUE,
                          patience = 10, verbose = TRUE) {
@@ -217,6 +221,7 @@ DeepSuRv <- nn_module(
     invisible(TRUE)
   },
 
+  # -----------------------------------------------------------------------
   save_model = function(filename, weights_file = NULL) {
     info <- list(
       learning_rate = self$learning_rate,
@@ -226,9 +231,9 @@ DeepSuRv <- nn_module(
     if (!is.null(weights_file)) self$save_weights(weights_file)
     invisible(TRUE)
   },
-  # potenital change to save to hdf5r file type
+
   save_weights = function(filename) {
-    torch_save(self$state_dict(), filename)
+    torch_save_state_dict(self$state_dict(), filename)
     cat("Saved weights to", filename, "\n")
   },
 
