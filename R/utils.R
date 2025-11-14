@@ -1,163 +1,117 @@
-#' Load Datasets from an HDF5 File
+
+#' Compute Negative Log-Likelihood
 #'
-#' This function reads datasets stored in an HDF5 file and returns them as a nested list.
-#' It requires the \pkg{hdf5r} package for handling HDF5 file operations.
+#' @param self A model-like object containing a method that returns the predicted log hazard.
+#' @param E A numeric vector of event indicators (1 = event occurred, 0 = censored).
+#' @param deterministic Logical; if TRUE, calculates deterministic network outputs.
 #'
-#' @param dataset_file Character string specifying the path to the HDF5 file to be loaded.
-#'
-#' @details
-#' The HDF5 file is opened in read-only mode using the \pkg{hdf5r} package.
-#' Each top-level group (e.g., \code{"train"}, \code{"valid"}, \code{"test"}) is read as a list of arrays.
-#' Within each group, all datasets (e.g., \code{"x"}, \code{"t"}, \code{"e"}) are read into memory.
-#'
-#' The function automatically closes the HDF5 file connection after reading all contents.
-#'
-#' @return A named list of groups, where each group is itself a list of datasets.
-#'
+#' @returns A single numeric value representing the negative partial log-likelihood.
 #' @examples
-#' \dontrun{
-#' library(hdf5r)
-#' datasets <- load_datasets("data/survival_data.h5")
-#' names(datasets)
-#' str(datasets$train)
-#' }
-#'
-#' @import hdf5r
+#' fake_self <- list(risk = function(deterministic) c(0.1, 0.2, 0.3))
+#' E <- c(1, 0, 1)
+#' negative_log_likelihood(fake_self, E)
 #' @export
-load_datasets <- function(dataset_file) {
-  # Open HDF5 file (read-only)
-  h5file <- H5File$new(dataset_file, mode = "r")
-  group_names <- names(h5file)
-  datasets <- list()
+negative_log_likelihood <- function(self, E, deterministic = FALSE) {
+  #translated _negative_log_likelihood in python as negative_log_likelihood
+  risk <- self$risk(deterministic)
+  hazard_ratio <- exp(risk)
+  log_risk <- log(cumsum(hazard_ratio))
+  uncensored_likelihood <- t(risk) - log_risk
+  censored_likelihood <- uncensored_likelihood * E
+  num_observed_events <- sum(E)
+  neg_likelihood <- -sum(censored_likelihood) / num_observed_events
+  return(neg_likelihood)
+}
 
-  for (ds in group_names) {
-    group <- h5file[[ds]]
-    array_names <- names(group)
-    group_list <- list()
+# Internal helper: Retrieve optimizer function by name.
+# the input update_fn is a character string specifying the optimizer name.
+# This function maps a string (e.g., "adam") to the corresponding Lasagne optimizer function.
+get_optimizer_from_str <- function(update_fn) {
+  if (update_fn == "sgd") {
+    return(lasagne$updates$sgd)         #translated lasagne.updates.sgd as lasagne$updates$sgd
+  } else if (update_fn == "adam") {
+    return(lasagne$updates$adam)        #same as above
+  } else if (update_fn == "rmsprop") {
+    return(lasagne$updates$rmsprop)     #same
+  }
+  return(NULL)
+}
 
-    for (array_name in array_names) {
-      data <- group[[array_name]]$read()
-      # Convert vectors to column matrices
-      if (is.vector(data)) {
-        data <- matrix(data, ncol = 1)
-      }
-      group_list[[array_name]] <- data
+# Internal helper: bootstrap performance metric performs bootstrap resampling on a dataset to estimate variability.
+# Not exported, only used internally.
+bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
+  sample_dataset <- function(dataset, sample_idx) {
+    # In the original Python version, the input "dataset" is a dictionary.
+    # In R, we use a named list to represent the same key–value structure. Each key corresponds to a vector.
+    # sample_dataset is a helper function for bootstrap_metric()
+    # dataset: named list (e.g., list(x, t, e))
+    # sample_idx: integer vector of resampled indices
+    sampled_dataset <- list()
+    for (key in names(dataset)) {
+      sampled_dataset[[key]] <- dataset[[key]][sample_idx]
     }
-
-    datasets[[ds]] <- group_list
+    return(sampled_dataset)
   }
 
-  h5file$close_all()
-  return(datasets)
-}
+  metrics <- numeric(N)     #translated a list "metrics" as a vector "metrics"
+  size <- length(dataset$x)
 
-
-#' Format Survival Dataset into a Data Frame
-#'
-#' This function converts a dataset (in list form) into a single data frame
-#' suitable for modeling or visualization. It extracts survival times and event
-#' indicators from specified columns, optionally renames a treatment column, and
-#' combines all covariates and outcomes into one consolidated object.
-#'
-#' @param dataset A list containing survival data with elements:
-#'   \describe{
-#'     \item{x}{A numeric matrix or data frame of covariates (predictors).}
-#'     \item{t}{A numeric matrix or data frame of survival times.}
-#'     \item{e}{A numeric matrix or data frame of event indicators.}
-#'   }
-#' @param duration_col Integer or character index specifying which column of
-#'   \code{dataset$t} contains the survival time variable.
-#' @param event_col Integer or character index specifying which column of
-#'   \code{dataset$e} contains the event indicator (1 = event, 0 = censored).
-#' @param trt_idx Optional integer or character index specifying which column of
-#'   \code{dataset$x} corresponds to a treatment indicator. If provided, that
-#'   column is renamed to \code{"treat"} in the output.
-#'
-#' @details
-#' The function binds together the covariate matrix (\code{x}), the selected
-#' survival time (\code{t}), and event indicator (\code{e}) into a single data
-#' frame.
-#' This is particularly useful for preparing data for regression modeling,
-#' plotting, or summary statistics.
-#'
-#' @return A data frame containing:
-#'   \describe{
-#'     \item{Covariates}{All columns from \code{dataset$x}.}
-#'     \item{dt}{A numeric column of survival times.}
-#'     \item{censor}{A numeric column of event indicators.}
-#'   }
-#'
-#' @examples
-#' dataset <- list(
-#'   x = data.frame(age = rnorm(10, 50, 10), sex = rbinom(10, 1, 0.5)),
-#'   t = data.frame(time = runif(10, 1, 5)),
-#'   e = data.frame(event = rbinom(10, 1, 0.7))
-#' )
-#'
-#' df <- format_dataset_to_df(dataset, duration_col = "time", event_col = "event")
-#' head(df)
-#'
-#' @export
-format_dataset_to_df<- function(dataset, duration_col, event_col, trt_idx = NULL){
-  xdf <- dataset$x
-  if (!is.null(trt_idx)){
-    colnames(xdf)[trt_idx] <- 'treat'
+  for (i in seq_len(N)) {
+    resample_idx <- sample(seq_len(size), size = size, replace = TRUE)
+    sampled <- sample_dataset(dataset, resample_idx)
+    metrics[i] <- do.call(metric_fxn, sampled)
   }
-  dt <- dataset$t[,duration_col]
-  censor <- dataset$e[,event_col]
-  cdf <- cbind(xdf, dt, censor)
-  return(cdf)
+
+  # Find mean and 95% confidence interval
+  mean_val <- mean(metrics)
+  conf_interval <- t.test(metrics, conf.level = 0.95)$conf.int
+
+  return(list(
+    mean = mean_val,
+    confidence_interval = conf_interval
+  ))
 }
 
-#' Standardize Covariate Matrix
-#'
-#' This helper function standardizes each column of a covariate matrix by
-#' centering (subtracting the mean) and scaling (dividing by the standard
-#' deviation). It can also apply user-specified centering and scaling values,
-#' ensuring consistency across training and testing datasets.
-#'
-#' @param x A numeric matrix or data frame of covariates to standardize.
-#' @param offset Optional numeric vector of column means. If \code{NULL}, the
-#'   means of \code{x} are computed and used.
-#' @param scale Optional numeric vector of column standard deviations. If
-#'   \code{NULL}, the standard deviations of \code{x} are computed and used.
-#'
-#' @details
-#' The function computes column-wise means and standard deviations if they are
-#' not provided, then standardizes \code{x} so that each column has (approximately)
-#' mean 0 and standard deviation 1.
-#' Columns with zero variance are scaled by 1 to avoid division by zero.
-#'
-#' This function is commonly used internally by \code{\link{prepare_data}} to
-#' ensure consistent feature scaling across datasets.
-#'
-#' @return A list containing:
-#'   \describe{
-#'     \item{x}{The standardized covariate matrix.}
-#'     \item{offset}{The column means used for centering.}
-#'     \item{scale}{The column standard deviations used for scaling.}
-#'   }
-#'
-#' @examples
-#' \dontrun{
-#' set.seed(123)
-#' x <- matrix(rnorm(12), ncol = 3)
-#' result <- standardize_x(x)
-#'
-#'
-#' # Apply the same standardization to new data
-#' new_x <- matrix(rnorm(6), ncol = 3)
-#' standardized_new <- standardize_x(new_x, offset = result$offset, scale = result$scale)
-#' }
-#' @importFrom stats sd
-standardize_x <- function(x, offset = NULL, scale = NULL) {
-  # Compute means and SDs if not provided
-  if (is.null(offset)) offset <- colMeans(x)
-  if (is.null(scale)) scale <- apply(x, 2, sd)
-  # Avoid dividing by zero
-  scale[scale == 0] <- 1
-  # Standardize
-  x_std <- sweep(x, 2, offset, "-") #subtracts mean from values
-  x_std <- sweep(x_std, 2, scale, "/") #divides by sd
-  return(list(x = x_std, offset = offset, scale = scale))
+# Internal helper: calculate recommended vs anti-recommended groups.
+# Used for evaluating treatment recommendations.
+calculate_recs_and_antirecs <- function(rec_trt, true_trt, dataset, print_metrics = TRUE) {
+  if (is.numeric(true_trt)) {
+    true_trt <- dataset$x[, true_trt]
+  }
+
+  trt_values <- seq_along(sort(unique(true_trt))) - 1
+  true_values <- sort(unique(true_trt))
+  equal_trt <- lapply(seq_along(trt_values), function(i) {
+    (rec_trt == trt_values[i]) & (true_trt == true_values[i])
+  })
+  rec_idx <- Reduce("|", equal_trt)
+
+  rec_t <- dataset$t[rec_idx]
+  antirec_t <- dataset$t[!rec_idx]
+  rec_e <- dataset$e[rec_idx]
+  antirec_e <- dataset$e[!rec_idx]
+
+  if (print_metrics) {
+    cat("Printing treatment recommendation metrics\n")
+    metrics <- list(
+      rec_median = median(rec_t),
+      antirec_median = median(antirec_t)
+    )
+    cat("Recommendation metrics:", metrics, "\n")
+  }
+
+  return(list(
+    rec_t = rec_t,
+    rec_e = rec_e,
+    antirec_t = antirec_t,
+    antirec_e = antirec_e
+  ))
+}
+
+# Internal helper: standardize dataset features.
+# Performs (x - offset) / scale on dataset$x.
+standardize_dataset <- function(dataset, offset, scale) {
+  norm_ds <- dataset
+  norm_ds$x <- (norm_ds$x - offset) / scale
+  return(norm_ds)
 }
