@@ -19,7 +19,6 @@ knitr::opts_chunk$set(
 # DeepSuRv
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 DeepSuRv is an R implementation of the DeepSurv feed-forward neural
