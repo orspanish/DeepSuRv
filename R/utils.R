@@ -23,18 +23,19 @@ negative_log_likelihood <- function(self, E, deterministic = FALSE) {
   return(neg_likelihood)
 }
 
-# Internal helper: Retrieve optimizer function by name.
-# the input update_fn is a character string specifying the optimizer name.
-# This function maps a string (e.g., "adam") to the corresponding Lasagne optimizer function.
+#' Map string to torch optimizer function
+#'
+#' Returns the corresponding torch optimizer class given a string.
+#'
+#' @param update_fn Character. One of "sgd", "adam", or "rmsprop".
+#' @return A function or NULL if the string is unrecognized.
+#' @import torch
 get_optimizer_from_str <- function(update_fn) {
-  if (update_fn == "sgd") {
-    return(lasagne$updates$sgd)         #translated lasagne.updates.sgd as lasagne$updates$sgd
-  } else if (update_fn == "adam") {
-    return(lasagne$updates$adam)        #same as above
-  } else if (update_fn == "rmsprop") {
-    return(lasagne$updates$rmsprop)     #same
-  }
-  return(NULL)
+  switch(update_fn,
+         sgd = torch::optim_sgd,
+         adam = torch::optim_adam,
+         rmsprop = torch::optim_rmsprop,
+         NULL)
 }
 
 # Internal helper: bootstrap performance metric performs bootstrap resampling on a dataset to estimate variability.
