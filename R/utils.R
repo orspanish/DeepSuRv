@@ -27,15 +27,18 @@ negative_log_likelihood <- function(self, E, deterministic = FALSE) {
 #'
 #' Returns the corresponding torch optimizer class given a string.
 #'
-#' @param update_fn Character. One of "sgd", "adam", or "rmsprop".
+#' @param opt Character. One of "sgd", "adam", or "rmsprop".
 #' @return A function or NULL if the string is unrecognized.
 #' @import torch
-get_optimizer_from_str <- function(update_fn) {
-  switch(update_fn,
-         sgd = torch::optim_sgd,
-         adam = torch::optim_adam,
-         rmsprop = torch::optim_rmsprop,
-         NULL)
+get_optimizer_from_str <- function(opt) {
+  opt <- tolower(opt)
+  switch(
+    opt,
+    "sgd"     = torch::optim_sgd,
+    "adam"    = torch::optim_adam,
+    "rmsprop" = torch::optim_rmsprop,
+    NULL
+  )
 }
 
 # Internal helper: bootstrap performance metric performs bootstrap resampling on a dataset to estimate variability.

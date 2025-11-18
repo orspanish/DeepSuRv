@@ -4,10 +4,10 @@
 \alias{get_optimizer_from_str}
 \title{Map string to torch optimizer function}
 \usage{
-get_optimizer_from_str(update_fn)
+get_optimizer_from_str(opt)
 }
 \arguments{
-\item{update_fn}{Character. One of "sgd", "adam", or "rmsprop".}
+\item{opt}{Character. One of "sgd", "adam", or "rmsprop".}
 }
 \value{
 A function or NULL if the string is unrecognized.
