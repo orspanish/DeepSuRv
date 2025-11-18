@@ -2,33 +2,23 @@
 % Please edit documentation in R/utils.R
 \name{load_datasets}
 \alias{load_datasets}
-\title{Load Datasets from an HDF5 File}
+\title{Load HDF5 Datasets into R}
 \usage{
 load_datasets(dataset_file)
 }
 \arguments{
-\item{dataset_file}{Character string specifying the path to the HDF5 file to be loaded.}
+\item{dataset_file}{Path to an HDF5 dataset file.}
 }
 \value{
-A named list of groups, where each group is itself a list of datasets.
+A named list where each element corresponds to a dataset group,
+and each group contains named arrays read from the HDF5 file.
 }
 \description{
-This function reads datasets stored in an HDF5 file and returns them as a nested list.
-It requires the \pkg{hdf5r} package for handling HDF5 file operations.
+Internal helper function that reads a DeepSurv-style HDF5 file containing
+groups such as \code{"train"}, \code{"valid"}, and \code{"test"}. Each group
+is expected to contain datasets such as \code{"x"}, \code{"t"}, and \code{"e"}.
 }
 \details{
-The HDF5 file is opened in read-only mode using the \pkg{hdf5r} package.
-Each top-level group (e.g., \code{"train"}, \code{"valid"}, \code{"test"}) is read as a list of arrays.
-Within each group, all datasets (e.g., \code{"x"}, \code{"t"}, \code{"e"}) are read into memory.
-
-The function automatically closes the HDF5 file connection after reading all contents.
-}
-\examples{
-\dontrun{
-library(hdf5r)
-datasets <- load_datasets("data/survival_data.h5")
-names(datasets)
-str(datasets$train)
-}
-
+Uses \code{hdf5r::H5File} to open the file in read-only mode. Reads each
+dataset fully into memory using the \code{[]}-operator.
 }

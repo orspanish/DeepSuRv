@@ -2,51 +2,30 @@
 % Please edit documentation in R/utils.R
 \name{standardize_x}
 \alias{standardize_x}
-\title{Standardize Covariate Matrix}
+\title{Standardize a Covariate Matrix}
 \usage{
 standardize_x(x, offset = NULL, scale = NULL)
 }
 \arguments{
-\item{x}{A numeric matrix or data frame of covariates to standardize.}
+\item{x}{A numeric matrix of covariates.}
 
-\item{offset}{Optional numeric vector of column means. If \code{NULL}, the
-means of \code{x} are computed and used.}
+\item{offset}{Optional numeric vector of column means to subtract. If \code{NULL},
+column means are computed from \code{x}.}
 
-\item{scale}{Optional numeric vector of column standard deviations. If
-\code{NULL}, the standard deviations of \code{x} are computed and used.}
+\item{scale}{Optional numeric vector of column standard deviations to divide by.
+If \code{NULL}, column SDs are computed from \code{x}. Any zero SD is replaced with 1
+to avoid division-by-zero.}
 }
 \value{
-A list containing:
+A list with components:
 \describe{
-\item{x}{The standardized covariate matrix.}
-\item{offset}{The column means used for centering.}
-\item{scale}{The column standard deviations used for scaling.}
+\item{\code{x}}{The standardized matrix.}
+\item{\code{offset}}{The column means used for centering.}
+\item{\code{scale}}{The column SDs used for scaling.}
 }
 }
 \description{
-This helper function standardizes each column of a covariate matrix by
-centering (subtracting the mean) and scaling (dividing by the standard
-deviation). It can also apply user-specified centering and scaling values,
-ensuring consistency across training and testing datasets.
-}
-\details{
-The function computes column-wise means and standard deviations if they are
-not provided, then standardizes \code{x} so that each column has (approximately)
-mean 0 and standard deviation 1.
-Columns with zero variance are scaled by 1 to avoid division by zero.
-
-This function is commonly used internally by \code{\link{prepare_data}} to
-ensure consistent feature scaling across datasets.
-}
-\examples{
-\dontrun{
-set.seed(123)
-x <- matrix(rnorm(12), ncol = 3)
-result <- standardize_x(x)
-
-
-# Apply the same standardization to new data
-new_x <- matrix(rnorm(6), ncol = 3)
-standardized_new <- standardize_x(new_x, offset = result$offset, scale = result$scale)
-}
+Internal helper function that centers and scales each column of a matrix.
+If \code{offset} (column means) and \code{scale} (column SDs) are not provided,
+they are computed from the data.
 }
