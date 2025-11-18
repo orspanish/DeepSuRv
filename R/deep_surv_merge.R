@@ -9,6 +9,7 @@
 #' @param dropout Numeric or NULL. Dropout probability per hidden layer.
 #' @param batch_norm Logical. Whether to include batch normalization layers.
 #' @param standardize Logical. Whether to apply input standardization.
+#' @param learning_rate Numeric. Step size of the optimizer during training
 #'
 #' @return An `nn_module` representing the DeepSurv model.
 #' @import torch
@@ -25,7 +26,10 @@ DeepSuRv <- nn_module(
                         activation = "relu",
                         dropout = NULL,
                         batch_norm = FALSE,
-                        standardize = FALSE) {
+                        standardize = FALSE,
+                        learning_rate = 0.01) {
+
+    self$learning_rate <- learning_rate
 
     # Activation function
     act <- switch(
@@ -48,11 +52,14 @@ DeepSuRv <- nn_module(
     # Build hidden layers
     for (h in hidden_layers) {
       layers <- append(layers, nn_linear(input_dim, h))
-
       if (batch_norm)
         layers <- append(layers, nn_batch_norm1d(h))
-
-      layers <- append(layers, act)
+      # Wrap activation as module using nn_module function
+      act_module <- nn_module(
+        initialize = function() {},
+        forward = function(x) act(x)
+      )
+      layers <- append(layers, act_module())
 
       if (!is.null(dropout) && dropout > 0)
         layers <- append(layers, nn_dropout(dropout))
@@ -60,9 +67,7 @@ DeepSuRv <- nn_module(
       input_dim <- h
     }
 
-    # Final linear output → log hazard score
     layers <- append(layers, nn_linear(input_dim, 1))
-
     self$model <- nn_sequential(!!!layers)
   },
 
@@ -119,41 +124,49 @@ DeepSuRv <- nn_module(
   get_loss_updates = function(x, time, event,
                               L1_reg = 0.0, L2_reg = 0.001,
                               max_norm = NULL, momentum = 0.9,
-                              optimizer_fn = optim_sgd,
-                              learning_rate = NULL) {
+                              opt_fn = "sgd",
+                              learning_rate = NULL,
+                              ...) {
 
-    loss <- self$negative_log_likelihood(x, time, event)
+    # Define the optimizer
+    params <- self$parameters
+    optimizer_fn <- get_optimizer_from_str(opt_fn)
+    optimizer <- optimizer_fn(params, lr = learning_rate %||% 0.01, momentum = momentum, ...)
 
-    # Regularization
-    if (L1_reg > 0 || L2_reg > 0) {
-      l1_penalty <- torch_tensor(0, dtype = torch_float())
-      l2_penalty <- torch_tensor(0, dtype = torch_float())
+    # Define the loss function
+    loss_fn <- function() {
+      log_hazard <- self$forward(x)
+      # Cox partial likelihood
+      hazard_ratio <- torch_exp(log_hazard)
+      log_risk <- torch_log(torch_cumsum(hazard_ratio, dim = 1))
+      uncensored_likelihood <- log_hazard - log_risk
+      censored_likelihood <- uncensored_likelihood * event
+      neg_likelihood <- -torch_mean(censored_likelihood)
 
-      for (p in self$parameters()) {
-        if (L1_reg > 0) l1_penalty <- l1_penalty + torch_sum(torch_abs(p))
-        if (L2_reg > 0) l2_penalty <- l2_penalty + torch_sum(p$pow(2))
-      }
+      # L1/L2 regularization
+      l1_penalty <- L1_reg * Reduce(`+`, lapply(self$parameters, function(p) torch_sum(torch_abs(p))))
+      l2_penalty <- L2_reg * Reduce(`+`, lapply(self$parameters, function(p) torch_sum(p^2)))
 
-      loss <- loss + L1_reg * l1_penalty + L2_reg * l2_penalty
+      total_loss <- neg_likelihood + l1_penalty + l2_penalty
+      total_loss
     }
-
-    # Optimizer
-    lr_val <- ifelse(is.null(learning_rate), self$learning_rate, learning_rate)
-    optimizer <- optimizer_fn(self$parameters(),
-                              lr = lr_val,
-                              momentum = momentum,
-                              nesterov = TRUE)
 
     update_step <- function() {
       optimizer$zero_grad()
+      loss <- loss_fn()
       loss$backward()
-      if (!is.null(max_norm))
-        nn_utils_clip_grad_norm_(self$parameters(), max_norm)
+      if (!is.null(max_norm)) {
+        nn_utils_clip_grad_norm_(self$parameters, max_norm)
+      }
       optimizer$step()
+      invisible(loss)
     }
 
-    self$update_step <- update_step
-    list(loss = loss, optimizer = optimizer)
+    list(
+      loss = loss_fn(),
+      update_step = update_step,
+      optimizer = optimizer
+    )
   },
 
   # -----------------------------------------------------------------------
@@ -189,19 +202,20 @@ DeepSuRv <- nn_module(
   # -----------------------------------------------------------------------
   train_model = function(train_data, n_epochs = 50,
                          valid_data = NULL, early_stopping = TRUE,
-                         patience = 10, verbose = TRUE) {
+                         patience = 10, verbose = TRUE, ...) {
 
     x <- train_data$x
     time <- train_data$time
     event <- train_data$event
 
-    opt_info <- self$get_loss_updates(x, time, event)
+    # Get loss and update_step function
+    opt_info <- self$get_loss_updates(x, time, event, ...)
+
     best_loss <- Inf
     no_improve <- 0
 
     for (epoch in 1:n_epochs) {
-      self$update_step()
-      loss_val <- as.numeric(opt_info$loss$item())
+      loss_val <- as.numeric(opt_info$update_step()$item())
 
       if (verbose)
         cat(sprintf("Epoch %d/%d - Loss: %.4f\n", epoch, n_epochs, loss_val))
@@ -218,6 +232,7 @@ DeepSuRv <- nn_module(
         break
       }
     }
+
     invisible(TRUE)
   },
 

@@ -14,11 +14,19 @@ lasagne <<- list(
 )
 
 # test 1：get_optimizer_from_str
-test_that("get_optimizer_from_str returns correct optimizer", {
-  expect_equal(get_optimizer_from_str("sgd"), "lasagne.updates.sgd")
-  expect_equal(get_optimizer_from_str("adam"), "lasagne.updates.adam")
-  expect_equal(get_optimizer_from_str("rmsprop"), "lasagne.updates.rmsprop")
-  expect_null(get_optimizer_from_str("none"))
+test_that("get_optimizer_from_str returns correct optimizer functions", {
+  expect_identical(get_optimizer_from_str("sgd"), torch::optim_sgd)
+  expect_identical(get_optimizer_from_str("adam"), torch::optim_adam)
+  expect_identical(get_optimizer_from_str("rmsprop"), torch::optim_rmsprop)
+  expect_null(get_optimizer_from_str("unknown"))
+
+  # simple toy model
+  model <- nn_linear(2,1)
+
+  opt_fn <- get_optimizer_from_str("adam")
+  opt <- opt_fn(model$parameters, lr = 0.01)
+
+  expect_s3_class(opt, "torch_optimizer")
 })
 
 # test 2：standardize_dataset

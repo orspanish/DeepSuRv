@@ -10,7 +10,8 @@ DeepSuRv(
   activation = "relu",
   dropout = NULL,
   batch_norm = FALSE,
-  standardize = FALSE
+  standardize = FALSE,
+  learning_rate = 0.01
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ DeepSuRv(
 \item{batch_norm}{Logical. Whether to include batch normalization layers.}
 
 \item{standardize}{Logical. Whether to apply input standardization.}
+
+\item{learning_rate}{Numeric. Step size of the optimizer during training}
 }
 \value{
 An \code{nn_module} representing the DeepSurv model.
