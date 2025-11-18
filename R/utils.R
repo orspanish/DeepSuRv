@@ -39,6 +39,7 @@ get_optimizer_from_str <- function(update_fn) {
 
 # Internal helper: bootstrap performance metric performs bootstrap resampling on a dataset to estimate variability.
 # Not exported, only used internally.
+#' @importFrom stats t.test
 bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
   sample_dataset <- function(dataset, sample_idx) {
     # In the original Python version, the input "dataset" is a dictionary.
@@ -74,6 +75,7 @@ bootstrap_metric <- function(metric_fxn, dataset, N = 100) {
 
 # Internal helper: calculate recommended vs anti-recommended groups.
 # Used for evaluating treatment recommendations.
+#' @importFrom stats median
 calculate_recs_and_antirecs <- function(rec_trt, true_trt, dataset, print_metrics = TRUE) {
   if (is.numeric(true_trt)) {
     true_trt <- dataset$x[, true_trt]
@@ -114,4 +116,101 @@ standardize_dataset <- function(dataset, offset, scale) {
   norm_ds <- dataset
   norm_ds$x <- (norm_ds$x - offset) / scale
   return(norm_ds)
+}
+
+#' Standardize a Covariate Matrix
+#'
+#' Internal helper function that centers and scales each column of a matrix.
+#' If `offset` (column means) and `scale` (column SDs) are not provided,
+#' they are computed from the data.
+#'
+#' @param x A numeric matrix of covariates.
+#' @param offset Optional numeric vector of column means to subtract. If `NULL`,
+#'   column means are computed from `x`.
+#' @param scale Optional numeric vector of column standard deviations to divide by.
+#'   If `NULL`, column SDs are computed from `x`. Any zero SD is replaced with 1
+#'   to avoid division-by-zero.
+#'
+#' @return A list with components:
+#'   \describe{
+#'     \item{\code{x}}{The standardized matrix.}
+#'     \item{\code{offset}}{The column means used for centering.}
+#'     \item{\code{scale}}{The column SDs used for scaling.}
+#'   }
+#' @importFrom stats sd
+standardize_x <- function(x, offset = NULL, scale = NULL) {
+  # Compute means and SDs if not provided
+  if (is.null(offset)) offset <- colMeans(x)
+  if (is.null(scale)) scale <- apply(x, 2, sd)
+  # Avoid dividing by zero
+  scale[scale == 0] <- 1
+  # Standardize
+  x_std <- sweep(x, 2, offset, "-") #subtracts mean from values
+  x_std <- sweep(x_std, 2, scale, "/") #divides by sd
+  return(list(x = x_std, offset = offset, scale = scale))
+}
+
+#' Format a DeepSurv Dataset into a Data Frame
+#'
+#' Converts a dataset list containing \code{x}, \code{t}, and \code{e}
+#' components into a single data frame with covariates, duration,
+#' and event indicator columns. Optionally renames a treatment column.
+#'
+#' @param dataset A list containing matrices \code{x}, \code{t}, and \code{e}.
+#' @param duration_col Integer; column index of the duration variable in \code{dataset$t}.
+#' @param event_col Integer; column index of the event indicator in \code{dataset$e}.
+#' @param trt_idx Optional integer index in \code{dataset$x} that should be renamed to \code{"treat"}.
+#'
+#' @return A data frame containing all covariates plus \code{dt} (duration)
+#'   and \code{censor} (event indicator).
+format_dataset_to_df<- function(dataset, duration_col, event_col, trt_idx = NULL){
+  xdf <- dataset$x
+  if (!is.null(trt_idx)){
+    colnames(xdf)[trt_idx] <- 'treat'
+  }
+  dt <- dataset$t[,duration_col]
+  censor <- dataset$e[,event_col]
+  cdf <- cbind(xdf, dt, censor)
+  return(cdf)
+}
+
+#' Load HDF5 Datasets into R
+#'
+#' Internal helper function that reads a DeepSurv-style HDF5 file containing
+#' groups such as \code{"train"}, \code{"valid"}, and \code{"test"}. Each group
+#' is expected to contain datasets such as \code{"x"}, \code{"t"}, and \code{"e"}.
+#'
+#' @param dataset_file Path to an HDF5 dataset file.
+#'
+#' @return A named list where each element corresponds to a dataset group,
+#'   and each group contains named arrays read from the HDF5 file.
+#'
+#' @details
+#' Uses \code{hdf5r::H5File} to open the file in read-only mode. Reads each
+#' dataset fully into memory using the \code{[]}-operator.
+#'
+#' @import hdf5r
+load_datasets <- function(dataset_file) {
+  # Open HDF5 file (read-only)
+  h5file <- H5File$new(dataset_file, mode = "r")
+  group_names <- names(h5file)
+  datasets <- list()
+
+  for (ds in group_names) {
+    group <- h5file[[ds]]
+    array_names <- names(group)
+    group_list <- list()
+
+    for (array_name in array_names) {
+      data <- group[[array_name]]$read()
+      # Convert vectors to column matrices
+      if (is.vector(data)) {
+        data <- matrix(data, ncol = 1)
+      }
+      group_list[[array_name]] <- data
+    }
+    datasets[[ds]] <- group_list
+  }
+  h5file$close_all()
+  return(datasets)
 }

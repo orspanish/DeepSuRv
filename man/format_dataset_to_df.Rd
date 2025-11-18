@@ -2,57 +2,25 @@
 % Please edit documentation in R/utils.R
 \name{format_dataset_to_df}
 \alias{format_dataset_to_df}
-\title{Format Survival Dataset into a Data Frame}
+\title{Format a DeepSurv Dataset into a Data Frame}
 \usage{
 format_dataset_to_df(dataset, duration_col, event_col, trt_idx = NULL)
 }
 \arguments{
-\item{dataset}{A list containing survival data with elements:
-\describe{
-\item{x}{A numeric matrix or data frame of covariates (predictors).}
-\item{t}{A numeric matrix or data frame of survival times.}
-\item{e}{A numeric matrix or data frame of event indicators.}
-}}
+\item{dataset}{A list containing matrices \code{x}, \code{t}, and \code{e}.}
 
-\item{duration_col}{Integer or character index specifying which column of
-\code{dataset$t} contains the survival time variable.}
+\item{duration_col}{Integer; column index of the duration variable in \code{dataset$t}.}
 
-\item{event_col}{Integer or character index specifying which column of
-\code{dataset$e} contains the event indicator (1 = event, 0 = censored).}
+\item{event_col}{Integer; column index of the event indicator in \code{dataset$e}.}
 
-\item{trt_idx}{Optional integer or character index specifying which column of
-\code{dataset$x} corresponds to a treatment indicator. If provided, that
-column is renamed to \code{"treat"} in the output.}
+\item{trt_idx}{Optional integer index in \code{dataset$x} that should be renamed to \code{"treat"}.}
 }
 \value{
-A data frame containing:
-\describe{
-\item{Covariates}{All columns from \code{dataset$x}.}
-\item{dt}{A numeric column of survival times.}
-\item{censor}{A numeric column of event indicators.}
-}
+A data frame containing all covariates plus \code{dt} (duration)
+and \code{censor} (event indicator).
 }
 \description{
-This function converts a dataset (in list form) into a single data frame
-suitable for modeling or visualization. It extracts survival times and event
-indicators from specified columns, optionally renames a treatment column, and
-combines all covariates and outcomes into one consolidated object.
-}
-\details{
-The function binds together the covariate matrix (\code{x}), the selected
-survival time (\code{t}), and event indicator (\code{e}) into a single data
-frame.
-This is particularly useful for preparing data for regression modeling,
-plotting, or summary statistics.
-}
-\examples{
-dataset <- list(
-  x = data.frame(age = rnorm(10, 50, 10), sex = rbinom(10, 1, 0.5)),
-  t = data.frame(time = runif(10, 1, 5)),
-  e = data.frame(event = rbinom(10, 1, 0.7))
-)
-
-df <- format_dataset_to_df(dataset, duration_col = "time", event_col = "event")
-head(df)
-
+Converts a dataset list containing \code{x}, \code{t}, and \code{e}
+components into a single data frame with covariates, duration,
+and event indicator columns. Optionally renames a treatment column.
 }
