@@ -22,6 +22,8 @@ Config/testthat/edition: 3
 Imports: 
     torch,
     jsonlite,
-    hdf5r
+    hdf5r,
+    survex,
+    survival
 URL: https://github.com/orspanish/DeepSuRv
 BugReports: https://github.com/orspanish/DeepSuRv/issues
