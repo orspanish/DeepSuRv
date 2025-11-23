@@ -29,27 +29,97 @@ You can install the development version of DeepSuRv from [GitHub](https://github
 pak::pak("orspanish/DeepSuRv")
 ```
 
-## Example
+## Python Environment Setup
 
-This is a basic example which shows you how to solve a common problem:
+This package provides access to survival datasets via the Python library
+`survival-datasets`, which requires Python ≥ 3.8 and other packages (e.g., 
+NumPy, pandas, scikit-survival, shap, PyArrow).
 
-```{r example}
+To keep things simple and reproducible, this package depends on the `reticulate`
+R package to create a dedicated Conda environment named `survdata_env` for all
+users to access these datasets.
+
+### One-Time Setup
+
+After installing this package, run this once:
+
+``` r
 library(DeepSuRv)
-## basic example code
+setup_survdata_env()
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+This will do the following:
 
-```{r cars}
-summary(cars)
+* Install Miniconda (if not already installed)
+* Create a conda environment called `survdata_env`
+* Install Python 3.10
+* Install NumPy, pandas, scikit-survival, shap, PyArrow
+
+After running `setup_survdata_env()` once, you can use the package like any 
+other package. We recommend running `list_survdata_datasets()` first to see the 
+available datasets (more on dataset descriptions below). Use the names returned
+from this output to import the datasets from the Python library as follows:
+
+``` r
+library(DeepSuRv)
+
+list_survdata_datasets()
+Xy <- load_survdata_dataset("veterans")
+veterans <- as.data.frame(Xy[1]) 
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+The environment will be automatically activated when the package is loaded.
+Users do not need to configure the environment every session.
 
-You can also embed plots, for example:
+## Descriptions of Datasets Available in the Package
 
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
+* **Veterans' Administration Lung Cancer Trial:** 137 patients and 6 features
+(Age in years, Cell type, Karnofsky score, Months from diagnosis, Prior therapy,
+and Treatment); The endpoint is death, which occurred for 128 patients (93.4%)
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+* **German Breast Cancer Study Group (GBSG2):** 686 patients and 8 features 
+(Age, Menopausal status, tumor localization, tumor size, estrogen and 
+progesterone receptor status, tumor grading, histologic tumor type, and number
+of involved lymph nodes); The endpoint is recurrence free survival, which 
+occurred for 299 patients (43.6%).
+
+* **AIDS Clinical Trial:** 1,151 patients and 11 features (Age at Enrollment
+in Years, Baseline CD4, Binary indication of Hemophilia, IV Drug Use History,
+Karnofsky score, Months of prior ZDV use, Race/Ethnicity, Sex, CD4 stratum at 
+screening, treatment indicator, treatment group indicator); There were two 
+endpoints: AIDS defining event (96 patients, 8.3%) or death (26 patients, 2.3%).
+
+* **NHANES:** 14,264 observations and 79 variables (laboratory 
+measurements, vital signs, sex, age, physical activity level)
+
+* **SUPPORT (Study to Understand Prognoses Preferences Outcomes and Risks of Treatment):**
+9,105 patients and 14 features (age, sex, race, number of comorbidities,
+presence of diabetes, presence of dementia, presence of cancer, mean arterial
+blood pressure, heart rate, respiration rate, temperature, white blood cell
+count, serum’s sodium, and serum’s creatinine); The endpoint is death.
+
+* **METABRIC (The Molecular Taxonomy of Breast Cancer International Consortium):**
+1,980 patients and 4 gene indicators (MKI67, EGFR, PGR, ERBB2) in addition to
+patients' clinical features (hormone treatment indicator, radiotherapy indicator, 
+chemotherapy indicator, ER-positive indicator, and age at diagnosis); The 
+endpoint is death (57.72% of patients).
+
+* **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14 features 
+(AFIB indicator, Age in years at hospital admission, Complete heart block 
+indicator, BMI, Congestive heart complications indicator, History of 
+cardiovascular disease indicator, Initial diastolic blood pressure, Initial 
+systolic blood pressure, gender, Initial heart rate, Length of hospital stay,
+Acute myocardial infarction (MI) order, MI type, Cardiogenic shock indicator);
+The endpoint is death, which occurred for 215 patients (43.0%).
+
+* **FLCHAIN (Serum Immunoglobulin Free Light Chain):** 7,874 patients and 9
+features (Age in years, Sex, Calendar year blood sample was obtained, kappa
+portion of SFLC, lambda portion of SFLC, SFLC group for subject, serum creatine, 
+Monoclonal gammapothy indicator, Primary cause of death if deceased); The 
+endpoint is death, which occurred for 2,169 subjects (27.5%).
+
+* **SEER (Surveillance, Epidemiology, and End Results Program from NCI):**
+4,024 patients and 16 features (Age, Race, Marital status, T stage, N stage, 
+6th stage, Differentiation status, Grade, A stage, Tumor size, Estrogen status,
+Progesterone status, Regional node examined, Reginol node positive, Survival 
+months, Status); The endpoint is death, which occurred for 15% of patients.
