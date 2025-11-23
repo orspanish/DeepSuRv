@@ -31,9 +31,10 @@ pak::pak("orspanish/DeepSuRv")
 
 ## Python Environment Setup
 
-This package provides access to survival datasets via the Python library
-`survival-datasets`, which requires Python ≥ 3.8 and other packages (e.g., 
-NumPy, pandas, scikit-survival, shap, PyArrow).
+The survival datasets used in this package are provided by the
+[**survival-datasets** repository](https://github.com/thecml/survival-datasets),
+which requires Python ≥ 3.8 and other packages (e.g., NumPy, pandas,
+scikit-survival, shap, PyArrow).
 
 To keep things simple and reproducible, this package depends on the `reticulate`
 R package to create a dedicated Conda environment named `survdata_env` for all
@@ -123,3 +124,10 @@ endpoint is death, which occurred for 2,169 subjects (27.5%).
 6th stage, Differentiation status, Grade, A stage, Tumor size, Estrogen status,
 Progesterone status, Regional node examined, Reginol node positive, Survival 
 months, Status); The endpoint is death, which occurred for 15% of patients.
+
+# References
+
+Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).  
+*DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional Hazards Deep Neural Network*.  
+Proceedings of the Machine Learning for Healthcare Conference, 312–325.  
+https://github.com/jaredleekatzman/DeepSurv

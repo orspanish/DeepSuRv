@@ -28,3 +28,8 @@ Imports:
     reticulate
 URL: https://github.com/orspanish/DeepSuRv
 BugReports: https://github.com/orspanish/DeepSuRv/issues
+References:
+  Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).
+  DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional
+  Hazards Deep Neural Network. Proceedings of the Machine Learning for Healthcare
+  Conference.
