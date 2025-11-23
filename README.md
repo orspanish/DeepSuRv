@@ -19,7 +19,7 @@ DeepSuRv offers:
   source framework equivalent to Python’s `PyTorch`.
 
 - Support for flexible network architectures that the user can define
-  (e.g. number of layers, activations, dropout rates, etc.).
+  (e.g. number of layers, activations, dropout rates, etc.).
 
 - Functions for training, predicting, and evaluating deep survival
   models.
@@ -77,8 +77,6 @@ You can install the development version of DeepSuRv from
 devtools::install_github("orspanish/DeepSuRv")
 ```
 
-## Descriptions of Datasets Available in the Package
-
 - **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
   features (Age, Menopausal status, tumor localization, tumor size,
   estrogen and progesterone receptor status, tumor grading, histologic
@@ -106,7 +104,7 @@ Kluger, Y. (2018).
 Proportional Hazards Deep Neural Network*.  
 Proceedings of the Machine Learning for Healthcare Conference,
 312–325.  
-<https://github.com/jaredleekatzman/DeepSurv>
+<https://github.com/jaredleekatzman/DeepSurv> 
 
 Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P.
 survex: an R package for explaining machine learning survival models.
