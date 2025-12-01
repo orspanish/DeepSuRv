@@ -41,27 +41,15 @@ setup_survdata_env <- function() {
     pip = FALSE
   )
 
-  # Pip install packages
+  # Pip install packages (use pip argument, not method)
   message("Installing pip packages (scikit-survival, survival-datasets)...")
-  reticulate::py_install(
-    packages = c("scikit-survival>=0.17.2", "survival-datasets"),
+  reticulate::conda_install(
     envname = "survdata_env",
-    method = "pip"
+    packages = c("scikit-survival>=0.17.2", "survival-datasets"),
+    pip = TRUE
   )
 
   message("Python environment 'survdata_env' is ready!")
-}
-
-load_survdata_module <- function() {
-  if (!reticulate::py_module_available("survdata.datasets")) {
-    stop(
-      "The Python package 'survival-datasets' is not installed.\n",
-      "Please run setup_survdata_env() first."
-    )
-  }
-
-  reticulate::use_condaenv("survdata_env", required = TRUE)
-  reticulate::import("survdata.datasets")
 }
 
 #' Load a dataset from the Python survdata package
@@ -71,6 +59,9 @@ load_survdata_module <- function() {
 #' @return A list with components X and y (converted from Python)
 #' @export
 load_survdata_dataset <- function(name) {
+  # Ensure we use the correct Python environment
+  reticulate::use_condaenv("survdata_env", required = TRUE)
+
   datasets <- reticulate::import("survdata.datasets", delay_load = TRUE)
 
   func_name <- paste0("load_", name, "_dataset")
@@ -82,17 +73,24 @@ load_survdata_dataset <- function(name) {
   # Call the Python function
   out <- datasets[[func_name]]()
 
-  # out is a Python tuple → reticulate converts to length-2 list automatically
-  return(out)
+  # Convert Python tuple to R list (X, y)
+  list(
+    X = reticulate::py_to_r(out[[1]]),
+    y = reticulate::py_to_r(out[[2]])
+  )
 }
 
 #' List available survdata datasets
 #' @export
 list_survdata_datasets <- function() {
+  # Ensure we use the correct Python environment
+  reticulate::use_condaenv("survdata_env", required = TRUE)
+
   datasets <- reticulate::import("survdata.datasets", delay_load = TRUE)
 
   fns <- reticulate::py_list_attributes(datasets)
   loaders <- grep("^load_.*_dataset$", fns, value = TRUE)
 
+  # Strip 'load_' prefix and '_dataset' suffix
   gsub("^load_|_dataset$", "", loaders)
 }
