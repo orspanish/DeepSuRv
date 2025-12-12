@@ -11,17 +11,17 @@
 #' E <- c(1, 0, 1)
 #' negative_log_likelihood(fake_self, E)
 #' @export
-negative_log_likelihood <- function(self, E, deterministic = FALSE) {
-  #translated _negative_log_likelihood in python as negative_log_likelihood
-  risk <- self$risk(deterministic)
-  hazard_ratio <- exp(risk)
-  log_risk <- log(cumsum(hazard_ratio))
-  uncensored_likelihood <- t(risk) - log_risk
-  censored_likelihood <- uncensored_likelihood * E
+negative_log_likelihood <- function(model, X, E) {
+  risk <- model$risk(torch_tensor(as.matrix(X), dtype = torch_float()))$squeeze()
+  hazard_ratio <- torch_exp(risk)
+  log_risk <- torch_log(torch_cumsum(hazard_ratio, dim = 1))
+  uncensored_likelihood <- risk - log_risk
+  censored_likelihood <- uncensored_likelihood * torch_tensor(E, dtype = torch_float())
   num_observed_events <- sum(E)
-  neg_likelihood <- -sum(censored_likelihood) / num_observed_events
-  return(neg_likelihood)
+  neg_likelihood <- -torch_sum(censored_likelihood) / num_observed_events
+  as.numeric(neg_likelihood$item())
 }
+
 
 #' Map string to torch optimizer function
 #'

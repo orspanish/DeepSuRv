@@ -1,281 +1,124 @@
-#' DeepSurv Neural Network Model
+#' DeepSuRv Neural Network Model (R6 + nn_module)
 #'
-#' Constructs a feed-forward neural network that outputs a log hazard score,
-#' equivalent to the core architecture of the Python DeepSurv implementation.
+#' R6-style DeepSurv implementation for survival analysis using torch `nn_module`.
+#' Includes training, prediction, and bootstrap C-index evaluation.
 #'
 #' @param n_in Integer. Number of input features.
 #' @param hidden_layers Integer vector. Sizes of hidden layers.
-#' @param activation Character. Activation function: "relu" or "selu".
-#' @param dropout Numeric or NULL. Dropout probability per hidden layer.
-#' @param batch_norm Logical. Whether to include batch normalization layers.
-#' @param standardize Logical. Whether to apply input standardization.
-#' @param learning_rate Numeric. Step size of the optimizer during training
+#' @param dropout Numeric. Dropout probability for each hidden layer.
+#' @param learning_rate Numeric. Learning rate for optimizer.
+#' @param n_epochs Integer. Number of epochs for training.
 #'
-#' @return An `nn_module` representing the DeepSurv model.
-#' @import torch
-#' @import jsonlite
-#'
-#' @examples
-#' model <- DeepSuRv(n_in = 10, hidden_layers = c(32, 16), activation = "relu")
+#' @return An R6 object representing a DeepSurv neural network.
+#' @import torch survival
 #' @export
-DeepSuRv <- nn_module(
-  classname = "DeepSurv",
+DeepSuRv <- R6::R6Class(
+  classname = "DeepSuRv",
+  public = list(
+    model = NULL,
+    n_in = NULL,
+    hidden_layers = NULL,
+    dropout = NULL,
+    learning_rate = NULL,
+    n_epochs = NULL,
+    mu = NULL,
+    sigma = NULL,
 
-  initialize = function(n_in,
-                        hidden_layers = c(),
-                        activation = "relu",
-                        dropout = NULL,
-                        batch_norm = FALSE,
-                        standardize = FALSE,
-                        learning_rate = 0.01) {
+    initialize = function(n_in, hidden_layers = c(), dropout = 0.0, learning_rate = 0.01, n_epochs = 50) {
+      self$n_in <- n_in
+      self$hidden_layers <- hidden_layers
+      self$dropout <- dropout
+      self$learning_rate <- learning_rate
+      self$n_epochs <- n_epochs
 
-    self$learning_rate <- learning_rate
-
-    # Activation function
-    act <- switch(
-      activation,
-      "relu" = nn_relu(),
-      "selu" = nn_selu(),
-      stop("Unknown activation function. Use 'relu' or 'selu'.")
-    )
-
-    layers <- list()
-    input_dim <- n_in
-
-    # Standardization parameters (not trainable)
-    self$standardize <- standardize
-    if (standardize) {
-      self$offset <- torch_zeros(n_in)
-      self$scale <- torch_ones(n_in)
-    }
-
-    # Build hidden layers
-    for (h in hidden_layers) {
-      layers <- append(layers, nn_linear(input_dim, h))
-      if (batch_norm)
-        layers <- append(layers, nn_batch_norm1d(h))
-      # Wrap activation as module using nn_module function
-      act_module <- nn_module(
-        initialize = function() {},
-        forward = function(x) act(x)
-      )
-      layers <- append(layers, act_module())
-
-      if (!is.null(dropout) && dropout > 0)
-        layers <- append(layers, nn_dropout(dropout))
-
-      input_dim <- h
-    }
-
-    layers <- append(layers, nn_linear(input_dim, 1))
-    self$model <- nn_sequential(!!!layers)
-  },
-
-  # Take input feature, apply all layers of model (linear layers and activation
-  # functions)
-  # Returns a single log-risk score for each subject to be used in prediction
-  forward = function(x) {
-    if (self$standardize)
-      x <- (x - self$offset) / self$scale
-    self$model(x)
-  },
-
-  # Compute log-risk scores (forward output)
-  # Returns a torch tensor of shape (n, 1)
-  risk = function(x) {
-    self$forward(x)
-  },
-
-  # Deterministic prediction (no dropout, eval mode)
-  # Returns a numeric vector of predicted log-risk for each observation.
-  predict_risk = function(x) {
-
-    # Convert x to torch tensor if needed
-    if (!inherits(x, "torch_tensor")) {
-      x <- torch_tensor(as.matrix(x), dtype = torch_float())
-    }
-
-    # Deterministic mode (no dropout/batchnorm updates)
-    self$eval()
-
-    with_no_grad({
-      out <- self$risk(x)
-    })
-
-    as.numeric(out$squeeze())
-  },
-
-  # -----------------------------------------------------------------------
-  # Negative log partial likelihood (Cox)
-  negative_log_likelihood = function(x, time, event) {
-    pred <- self$forward(x)$squeeze()
-    order <- order(as.numeric(time), decreasing = TRUE)
-    pred <- pred[order]
-    event <- event[order]
-    risk <- torch_exp(pred)
-    denom <- torch_cumsum(risk, dim = 1)
-    log_cumhaz <- torch_log(denom)
-    loss <- -torch_mean((pred - log_cumhaz) * event)
-    loss
-  },
-
-  # -----------------------------------------------------------------------
-  # Loss + updates
-  get_loss_updates = function(x, time, event,
-                              L1_reg = 0.0, L2_reg = 0.001,
-                              max_norm = NULL, momentum = 0.9,
-                              opt_fn = "sgd",
-                              learning_rate = NULL,
-                              ...) {
-
-    # Define the optimizer
-    params <- self$parameters
-    optimizer_fn <- get_optimizer_from_str(opt_fn)
-    optimizer <- optimizer_fn(params, lr = learning_rate %||% 0.01, momentum = momentum, ...)
-
-    # Define the loss function
-    loss_fn <- function() {
-      log_hazard <- self$forward(x)
-      # Cox partial likelihood
-      hazard_ratio <- torch_exp(log_hazard)
-      log_risk <- torch_log(torch_cumsum(hazard_ratio, dim = 1))
-      uncensored_likelihood <- log_hazard - log_risk
-      censored_likelihood <- uncensored_likelihood * event
-      neg_likelihood <- -torch_mean(censored_likelihood)
-
-      # L1/L2 regularization
-      l1_penalty <- L1_reg * Reduce(`+`, lapply(self$parameters, function(p) torch_sum(torch_abs(p))))
-      l2_penalty <- L2_reg * Reduce(`+`, lapply(self$parameters, function(p) torch_sum(p^2)))
-
-      total_loss <- neg_likelihood + l1_penalty + l2_penalty
-      total_loss
-    }
-
-    update_step <- function() {
-      optimizer$zero_grad()
-      loss <- loss_fn()
-      loss$backward()
-      if (!is.null(max_norm)) {
-        nn_utils_clip_grad_norm_(self$parameters, max_norm)
-      }
-      optimizer$step()
-      invisible(loss)
-    }
-
-    list(
-      loss = loss_fn(),
-      update_step = update_step,
-      optimizer = optimizer
-    )
-  },
-
-  # -----------------------------------------------------------------------
-  # Train + valid functions (wrappers for theano-style callable)
-  get_train_valid_fn = function(L1_reg, L2_reg, learning_rate, ...) {
-
-    # Training function: compute loss + apply updates
-    train_fn <- function(x, time, event) {
-      loss_updates <- self$get_loss_updates(
-        x = x, time = time, event = event,
-        L1_reg = L1_reg, L2_reg = L2_reg,
-        learning_rate = learning_rate,
-        deterministic = FALSE, ...
-      )
-
-      self$update_step()
-      return(loss_updates$loss)
-    }
-
-    # Validation function: deterministic loss, no updates
-    valid_fn <- function(x, time, event) {
-      self$eval()
-      with_no_grad({
-        loss_val <- self$negative_log_likelihood(x, time, event)
-      })
-      self$train()
-      return(loss_val)
-    }
-
-    list(train_fn = train_fn, valid_fn = valid_fn)
-  },
-
-  # -----------------------------------------------------------------------
-  train_model = function(train_data, n_epochs = 50,
-                         valid_data = NULL, early_stopping = TRUE,
-                         patience = 10, verbose = TRUE, ...) {
-
-    x <- train_data$x
-    time <- train_data$time
-    event <- train_data$event
-
-    # Get loss and update_step function
-    opt_info <- self$get_loss_updates(x, time, event, ...)
-
-    best_loss <- Inf
-    no_improve <- 0
-
-    for (epoch in 1:n_epochs) {
-      loss_val <- as.numeric(opt_info$update_step()$item())
-
-      if (verbose)
-        cat(sprintf("Epoch %d/%d - Loss: %.4f\n", epoch, n_epochs, loss_val))
-
-      if (loss_val < best_loss) {
-        best_loss <- loss_val
-        no_improve <- 0
-      } else {
-        no_improve <- no_improve + 1
-      }
-
-      if (early_stopping && no_improve >= patience) {
-        cat("Early stopping triggered.\n")
-        break
-      }
-    }
-
-    invisible(TRUE)
-  },
-
-  # -----------------------------------------------------------------------
-  save_model = function(filename, weights_file = NULL) {
-    info <- list(
-      learning_rate = self$learning_rate,
-      standardize = self$standardize
-    )
-    writeLines(jsonlite::toJSON(info, auto_unbox = TRUE), con = filename, useBytes = TRUE)
-    if (!is.null(weights_file)) self$save_weights(weights_file)
-    invisible(TRUE)
-  },
-
-  save_weights = function(filename) {
-    torch_save_state_dict(self$state_dict(), filename)
-    cat("Saved weights to", filename, "\n")
-  },
-
-  load_weights = function(filename) {
-    state <- torch_load(filename)
-    self$load_state_dict(state)
-    cat("Loaded weights from", filename, "\n")
-  },
-
-  to_json = function() {
-    jsonlite::toJSON(list(learning_rate = self$learning_rate), auto_unbox = TRUE)
-  },
-
-  get_concordance_index = function(x, time, event) {
-    preds <- self$predict_risk(x)
-    order <- order(time)
-    concordant <- 0
-    comparable <- 0
-    for (i in seq_along(time)) {
-      for (j in seq_along(time)) {
-        if (time[i] < time[j] && event[i] == 1) {
-          comparable <- comparable + 1
-          if (preds[i] > preds[j]) concordant <- concordant + 1
+      # nn_module network
+      self$model <- nn_module(
+        "DeepSurv",
+        initialize = function(n_in, hidden, dropout) {
+          self$layers <- nn_module_list()
+          in_dim <- n_in
+          for (h in hidden) {
+            self$layers$append(nn_linear(in_dim, h))
+            self$layers$append(nn_relu())
+            if (dropout > 0) self$layers$append(nn_dropout(p = dropout))
+            in_dim <- h
+          }
+          self$out <- nn_linear(in_dim, 1)
+        },
+        forward = function(x) {
+          for (i in seq_len(length(self$layers))) {
+            x <- self$layers[[i]](x)
+          }
+          self$out(x)
         }
+      )(n_in = n_in, hidden = hidden_layers, dropout = dropout)
+    },
+
+    # Standardize inputs
+    set_standardization = function(X) {
+      self$mu <- colMeans(X)
+      self$sigma <- apply(X, 2, sd)
+      self$sigma[self$sigma == 0] <- 1
+    },
+    standardize = function(X) {
+      scale(X, center = self$mu, scale = self$sigma)
+    },
+
+    # Negative log partial likelihood
+    nll_loss = function(pred, t, e) {
+      risk <- pred
+      hazard_ratio <- torch_exp(risk)
+      ord <- order(-as_array(t))
+      hazard_ratio_sorted <- hazard_ratio[ord]
+      log_risk <- torch_log(torch_cumsum(hazard_ratio_sorted, dim = 1))
+      neg_ll <- -torch_sum((risk[ord] - log_risk) * e[ord])
+      neg_ll / t$size(1)
+    },
+
+    # Training function
+    train = function(X_train, t_train, e_train, verbose = TRUE) {
+      X_train_std <- self$standardize(X_train)
+      X_tensor <- torch_tensor(X_train_std, dtype = torch_float())
+      t_tensor <- torch_tensor(as.numeric(t_train), dtype = torch_float())
+      e_tensor <- torch_tensor(as.numeric(e_train), dtype = torch_float())
+
+      optimizer <- optim_adam(self$model$parameters, lr = self$learning_rate)
+
+      for (epoch in 1:self$n_epochs) {
+        self$model$train()
+        optimizer$zero_grad()
+        pred <- self$model(X_tensor)
+        loss <- self$nll_loss(pred, t_tensor, e_tensor)
+        loss$backward()
+        optimizer$step()
+        if (verbose && epoch %% 10 == 0) cat("Epoch:", epoch, "Loss:", as.numeric(loss$item()), "\n")
       }
+    },
+
+    # Prediction
+    predict_risk = function(X) {
+      X_std <- self$standardize(X)
+      X_tensor <- torch_tensor(X_std, dtype = torch_float())
+      self$model$eval()
+      with_no_grad({
+        as.numeric(self$model(X_tensor)$squeeze())
+      })
+    },
+
+    # Bootstrap C-index
+    bootstrap_cindex = function(X, t, e, n_boot = 500, seed = 42) {
+      set.seed(seed)
+      n <- length(t)
+      scores <- self$predict_risk(X)
+      c_hat <- survConcordance(Surv(t, e) ~ scores)$concordance
+      boot_stats <- numeric(n_boot)
+      for (i in 1:n_boot) {
+        idx <- sample(1:n, n, replace = TRUE)
+        boot_stats[i] <- survConcordance(Surv(t[idx], e[idx]) ~ scores[idx])$concordance
+      }
+      lower <- quantile(boot_stats, 0.025, na.rm = TRUE)
+      upper <- quantile(boot_stats, 0.975, na.rm = TRUE)
+      list(cindex = c_hat, lower = lower, upper = upper)
     }
-    ci <- concordant / comparable
-    ci
-  }
+  )
 )
