@@ -28,7 +28,7 @@ A named list where each element contains:
 }
 }
 \description{
-Uses the Survex explainer to compute survival curves and risk scores under multiple counterfactual scenarios.
+Compute survival curves and risk scores under multiple counterfactual scenarios.
 Each scenario represents a set of feature perturbations.
 }
 \examples{

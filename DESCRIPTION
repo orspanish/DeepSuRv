@@ -24,8 +24,7 @@ Imports:
     jsonlite,
     hdf5r,
     survex,
-    survival,
-    reticulate
+    survival
 URL: https://github.com/orspanish/DeepSuRv
 BugReports: https://github.com/orspanish/DeepSuRv/issues
 References:

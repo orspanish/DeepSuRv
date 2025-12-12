@@ -7,7 +7,65 @@
 
 <!-- badges: end -->
 
-The goal of DeepSuRv is to …
+DeepSuRv is an R implementation of the DeepSurv feed-forward neural
+network-based Cox proportional hazards model originally developed in
+Python using the Theano and Lasagne libraries as the main NN
+architecture: <https://github.com/jaredleekatzman/DeepSurv.git>
+
+DeepSuRv offers:
+
+- DeepSurv’s neural network survival model in a full native-R
+  implementation backed by the `torch` R package. `torch` is R’s open
+  source framework equivalent to Python’s `PyTorch`.
+
+- Support for flexible network architectures that the user can define
+  (e.g. number of layers, activations, dropout rates, etc.).
+
+- Functions for training, predicting, and evaluating deep survival
+  models.
+
+- Integration with the `survex` R package to generate counterfactual
+  explanations for individual survival predictions.
+
+- A user-friendly workflow that promotes reproducibility and
+  interpretability.
+
+DeepSuRv enables researchers to train and interpret neural network
+survival models through counterfactual reasoning in R.
+
+## Key Features
+
+### DeepSurv Model in R
+
+- Feed-forward neural network that produces log-hazard outputs
+
+- Trained using the partial log-likelihood loss of the Cox model
+
+- GPU support via `torch` when applicable
+
+- Compatibility with tidy data workflows
+
+- Returns concordance index (C-index) and loss during training
+
+### Counterfactual Explanations with `survex`
+
+DeepSuRv adds new functionality to the original DeepSurv workflow by
+enabling counterfactual explanations for the neural network model it
+creates using. `survex`: <https://github.com/ModelOriented/survex.git>.
+
+`survex` provides infrastructure for:
+
+- Counterfactual survival curves
+
+- Perturbation-based variable importance
+
+- Model stability checks
+
+- Generation of actionable and human-interpretable explanations
+
+DeepSuRv’s prediction interface is fully compatible with `survex`, so
+users can pass DeepSuRv models directly into the counterfactual
+functions found in the `survex` package (more to follow below).
 
 ## Installation
 
@@ -15,39 +73,72 @@ You can install the development version of DeepSuRv from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("orspanish/DeepSuRv")
+# install.packages("devtools")
+devtools::install_github("orspanish/DeepSuRv")
 ```
 
-## Example
+- **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
+  features (Age, Menopausal status, tumor localization, tumor size,
+  estrogen and progesterone receptor status, tumor grading, histologic
+  tumor type, and number of involved lymph nodes); The endpoint is
+  recurrence free survival, which occurred for 299 patients (43.6%).
 
-This is a basic example which shows you how to solve a common problem:
+- **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14
+  features (AFIB indicator, Age in years at hospital admission, Complete
+  heart block indicator, BMI, Congestive heart complications indicator,
+  History of cardiovascular disease indicator, Initial diastolic blood
+  pressure, Initial systolic blood pressure, gender, Initial heart rate,
+  Length of hospital stay, Acute myocardial infarction (MI) order, MI
+  type, Cardiogenic shock indicator); The endpoint is death, which
+  occurred for 215 patients (43.0%).
 
-``` r
-library(DeepSuRv)
-## basic example code
-```
+## How to Train a DeepSurv Model
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+## How to Produce a Counterfactual Explanation with `survex`
 
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
+## References
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
+Kluger, Y. (2018).  
+*DeepSurv: Personalized Treatment Recommender System Using a Cox
+Proportional Hazards Deep Neural Network*.  
+Proceedings of the Machine Learning for Healthcare Conference,
+312–325.  
+<https://github.com/jaredleekatzman/DeepSurv> 
 
-You can also embed plots, for example:
+## Descriptions of Datasets Available in the Package
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+- **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
+  features (Age, Menopausal status, tumor localization, tumor size,
+  estrogen and progesterone receptor status, tumor grading, histologic
+  tumor type, and number of involved lymph nodes); The endpoint is
+  recurrence free survival, which occurred for 299 patients (43.6%).
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+- **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14
+  features (AFIB indicator, Age in years at hospital admission, Complete
+  heart block indicator, BMI, Congestive heart complications indicator,
+  History of cardiovascular disease indicator, Initial diastolic blood
+  pressure, Initial systolic blood pressure, gender, Initial heart rate,
+  Length of hospital stay, Acute myocardial infarction (MI) order, MI
+  type, Cardiogenic shock indicator); The endpoint is death, which
+  occurred for 215 patients (43.0%).
+
+## How to Train a DeepSurv Model
+
+## How to Produce a Counterfactual Explanation with `survex`
+
+## References
+
+Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
+Kluger, Y. (2018).  
+*DeepSurv: Personalized Treatment Recommender System Using a Cox
+Proportional Hazards Deep Neural Network*.  
+Proceedings of the Machine Learning for Healthcare Conference,
+312–325.  
+<https://github.com/jaredleekatzman/DeepSurv>
+
+Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P.
+survex: an R package for explaining machine learning survival models.
+Bioinformatics. 2023 Dec 1;39(12):btad723. doi:
+10.1093/bioinformatics/btad723. PMID: 38039146; PMCID: PMC11025379.
+<https://github.com/ModelOriented/survex/>
