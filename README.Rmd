@@ -74,6 +74,8 @@ You can install the development version of DeepSuRv from [GitHub](https://github
 devtools::install_github("orspanish/DeepSuRv")
 ```
 
+## Descriptions of Datasets Available in the Package
+
 * **German Breast Cancer Study Group (GBSG2):** 686 patients and 8 features 
 (Age, Menopausal status, tumor localization, tumor size, estrogen and 
 progesterone receptor status, tumor grading, histologic tumor type, and number
@@ -97,10 +99,8 @@ The endpoint is death, which occurred for 215 patients (43.0%).
 ## References
 
 Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).  
-*DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional Hazards Deep Neural Network*.  
-Proceedings of the Machine Learning for Healthcare Conference, 312–325.  
+*DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional Hazards Deep Neural Network*. Proceedings of the Machine Learning for Healthcare Conference, 312–325.  
 https://github.com/jaredleekatzman/DeepSurv
-<<<<<<< HEAD
 
 Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P. survex: an R package for explaining machine learning survival models. Bioinformatics. 2023 Dec 1;39(12):btad723. doi: 10.1093/bioinformatics/btad723. PMID: 38039146; PMCID: PMC11025379.
 https://github.com/ModelOriented/survex/
