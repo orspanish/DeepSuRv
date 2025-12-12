@@ -82,3 +82,65 @@ make_deepsurv_explainer <- function(model, data, time_col, event_col) {
 
   return(expl)
 }
+
+#' Prepare data for DeepSurv training
+#'
+#' This function preprocesses a dataset for use in DeepSurv. It removes
+#' incomplete cases, scales numeric variables, converts character/factor
+#' variables to numeric encodings, constructs training data torch tensors, and
+#' orders observations by decreasing survival time.
+#'
+#' @param data A `data.frame` containing covariates and survival outcome variables.
+#' @param time_col A string giving the name of the survival time column.
+#' @param event_col A string giving the name of the event indicator column
+#'   (typically 1 = event, 0 = censored).
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{X_mat}{A processed version of the covariate matrix with numeric scaling
+#'                   and factor/character conversion applied.}
+#'   \item{dat}{A matrix of the processed covariate data with the addition of the
+#'               time and event data.}
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' train_obj <- prep_data(mydata, time_col = "time", event_col = "status")
+#' }
+#' @export
+prep_data <- function(data, time_col, event_col) {
+  # remove rows with any missing values
+  complete_rows <- which(rowSums(is.na(data)) == 0)
+  data <- data[complete_rows, ]
+
+  # extract covariate matrix
+  X <- data[, !(names(data) %in% c(time_col, event_col)), drop = FALSE]
+
+  # identify variable types
+  num_tag <- sapply(X, is.numeric)
+  cha_tag <- sapply(X, is.character)
+  fac_tag <- sapply(X, is.factor)
+
+  # numeric columns
+  if (any(num_tag)) {
+    X[, num_tag] <- unname(scale(X[, num_tag, drop = FALSE]))
+  }
+
+  # character columns (convert to factor, then numeric)
+  if (any(cha_tag)) {
+    X[, cha_tag] <- lapply(X[, cha_tag, drop = FALSE], function(col) {
+      as.numeric(as.factor(col))
+    })
+  }
+
+  # factor columns
+  if (any(fac_tag)) {
+    X[, fac_tag] <- lapply(X[, fac_tag, drop = FALSE], as.numeric)
+  }
+
+  # ensure X is a numeric matrix
+  X_mat <- as.matrix(X)
+  full_dat <- cbind(X_mat, data[, c(time_col, event_col)])
+
+  return(list(X_mat = X_mat, dat = full_dat))
+}
