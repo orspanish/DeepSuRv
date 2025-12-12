@@ -2,40 +2,126 @@
 % Please edit documentation in R/deep_surv_merge.R
 \name{DeepSuRv}
 \alias{DeepSuRv}
-\title{DeepSurv Neural Network Model}
-\usage{
-DeepSuRv(
-  n_in,
-  hidden_layers = c(),
-  activation = "relu",
-  dropout = NULL,
-  batch_norm = FALSE,
-  standardize = FALSE,
-  learning_rate = 0.01
-)
-}
-\arguments{
-\item{n_in}{Integer. Number of input features.}
-
-\item{hidden_layers}{Integer vector. Sizes of hidden layers.}
-
-\item{activation}{Character. Activation function: "relu" or "selu".}
-
-\item{dropout}{Numeric or NULL. Dropout probability per hidden layer.}
-
-\item{batch_norm}{Logical. Whether to include batch normalization layers.}
-
-\item{standardize}{Logical. Whether to apply input standardization.}
-
-\item{learning_rate}{Numeric. Step size of the optimizer during training}
-}
+\title{DeepSuRv Neural Network Model (R6 + nn_module)}
 \value{
-An \code{nn_module} representing the DeepSurv model.
+An R6 object representing a DeepSurv neural network.
 }
 \description{
-Constructs a feed-forward neural network that outputs a log hazard score,
-equivalent to the core architecture of the Python DeepSurv implementation.
+R6-style DeepSurv implementation for survival analysis using torch \code{nn_module}.
+Includes training, prediction, and bootstrap C-index evaluation.
 }
-\examples{
-model <- DeepSuRv(n_in = 10, hidden_layers = c(32, 16), activation = "relu")
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-DeepSuRv-new}{\code{DeepSuRv$new()}}
+\item \href{#method-DeepSuRv-set_standardization}{\code{DeepSuRv$set_standardization()}}
+\item \href{#method-DeepSuRv-standardize}{\code{DeepSuRv$standardize()}}
+\item \href{#method-DeepSuRv-nll_loss}{\code{DeepSuRv$nll_loss()}}
+\item \href{#method-DeepSuRv-train}{\code{DeepSuRv$train()}}
+\item \href{#method-DeepSuRv-predict_risk}{\code{DeepSuRv$predict_risk()}}
+\item \href{#method-DeepSuRv-bootstrap_cindex}{\code{DeepSuRv$bootstrap_cindex()}}
+\item \href{#method-DeepSuRv-clone}{\code{DeepSuRv$clone()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-new"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$new(
+  n_in,
+  hidden_layers = c(),
+  dropout = 0,
+  learning_rate = 0.01,
+  n_epochs = 50
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n_in}}{Integer. Number of input features.}
+
+\item{\code{hidden_layers}}{Integer vector. Sizes of hidden layers.}
+
+\item{\code{dropout}}{Numeric. Dropout probability for each hidden layer.}
+
+\item{\code{learning_rate}}{Numeric. Learning rate for optimizer.}
+
+\item{\code{n_epochs}}{Integer. Number of epochs for training.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-set_standardization"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-set_standardization}{}}}
+\subsection{Method \code{set_standardization()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$set_standardization(X)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-standardize"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-standardize}{}}}
+\subsection{Method \code{standardize()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$standardize(X)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-nll_loss"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-nll_loss}{}}}
+\subsection{Method \code{nll_loss()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$nll_loss(pred, t, e)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-train"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-train}{}}}
+\subsection{Method \code{train()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$train(X_train, t_train, e_train, verbose = TRUE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-predict_risk"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-predict_risk}{}}}
+\subsection{Method \code{predict_risk()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$predict_risk(X)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-bootstrap_cindex"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-bootstrap_cindex}{}}}
+\subsection{Method \code{bootstrap_cindex()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$bootstrap_cindex(X, t, e, n_boot = 500, seed = 42)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DeepSuRv-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-DeepSuRv-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DeepSuRv$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
+}
 }

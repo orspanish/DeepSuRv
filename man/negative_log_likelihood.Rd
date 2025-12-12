@@ -4,12 +4,12 @@
 \alias{negative_log_likelihood}
 \title{Compute Negative Log-Likelihood}
 \usage{
-negative_log_likelihood(self, E, deterministic = FALSE)
+negative_log_likelihood(model, X, E)
 }
 \arguments{
-\item{self}{A model-like object containing a method that returns the predicted log hazard.}
-
 \item{E}{A numeric vector of event indicators (1 = event occurred, 0 = censored).}
+
+\item{self}{A model-like object containing a method that returns the predicted log hazard.}
 
 \item{deterministic}{Logical; if TRUE, calculates deterministic network outputs.}
 }
