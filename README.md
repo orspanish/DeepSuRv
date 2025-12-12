@@ -102,8 +102,8 @@ devtools::install_github("orspanish/DeepSuRv")
 
 Below provides a brief tutorial of the DeepSuRv - Survex integration
 process using the veteran data from the Survival package. Please refer
-to the associated article on ‘Integrating a DeepSuRv Model with Survex
-Counterfactuals’ for more information.
+[here](https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html)
+for more information.
 
 Begin by preprocessing the data, converting the outputs to torch tensors
 (necessary to train the DeepSuRv model), and ordering by descending
