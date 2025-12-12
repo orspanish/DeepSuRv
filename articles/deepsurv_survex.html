@@ -160,11 +160,11 @@ DEEPSURV CLASS TUTORIAL ARTICLE</strong>.</p>
 <span>  t_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>  e_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">event</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Epoch: 10 Loss: 191.5786 </span></span>
-<span><span class="co">#&gt; Epoch: 20 Loss: 188.6638 </span></span>
-<span><span class="co">#&gt; Epoch: 30 Loss: 185.7837 </span></span>
-<span><span class="co">#&gt; Epoch: 40 Loss: 182.8854 </span></span>
-<span><span class="co">#&gt; Epoch: 50 Loss: 180.3779</span></span></code></pre></div>
+<span><span class="co">#&gt; Epoch: 10 Loss: 192.5649 </span></span>
+<span><span class="co">#&gt; Epoch: 20 Loss: 190.0925 </span></span>
+<span><span class="co">#&gt; Epoch: 30 Loss: 187.8481 </span></span>
+<span><span class="co">#&gt; Epoch: 40 Loss: 185.5323 </span></span>
+<span><span class="co">#&gt; Epoch: 50 Loss: 183.2098</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="make-predictions">Make Predictions<a class="anchor" aria-label="anchor" href="#make-predictions"></a>
@@ -176,7 +176,8 @@ sooner.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">risk_scores</span> <span class="op">&lt;-</span> <span class="va">model</span><span class="op">$</span><span class="fu">predict_risk</span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">risk_scores</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -0.5356189  0.7908125 -1.9209992  1.2045156  0.5373293  0.2379999</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -0.793719232  0.922863185 -1.618962288  0.656104028 -0.006884575</span></span>
+<span><span class="co">#&gt; [6]  0.337926924</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

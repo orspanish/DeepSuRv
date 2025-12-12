@@ -91,6 +91,74 @@ devtools::install_github("orspanish/DeepSuRv")
 
 ## How to Produce a Counterfactual Explanation with `survex`
 
+### Integrating DeepSuRv with Survex Explainer Object
+
+Below provides a brief tutorial of the DeepSuRv - Survex integration
+process using the veteran data from the Survival package. Please refer
+[here](https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html)
+for more information.
+
+Begin by preprocessing the data, converting the outputs to torch tensors
+(necessary to train the DeepSuRv model), and ordering by descending
+time.
+
+``` r
+# Preprocess data
+veteran_prep <- prep_data(veteran, 'time', 'status')
+X <- veteran_prep$X_mat
+dat <- veteran_prep$dat
+
+# Convert to torch tensors
+train_data <- list(
+  x = torch_tensor(as.matrix(X), dtype = torch_float()),
+  time = torch_tensor(dat$time, dtype = torch_float()),
+  event = torch_tensor(dat$status, dtype = torch_float())
+)
+
+# Order by descending time
+order_idx <- order(as.numeric(train_data$time), decreasing = TRUE)
+train_data$x <- train_data$x[order_idx, ]
+train_data$time <- train_data$time[order_idx]
+train_data$event <- train_data$event[order_idx]
+```
+
+Initialize and standardize the model. This uses a basic model with
+standardization, which is not necessary but improves convergence
+efficiency.
+
+``` r
+# Initialize model
+model <- DeepSuRv$new(
+  n_in = ncol(X),
+  hidden_layers = c(16),
+  dropout = 0,
+  learning_rate = 0.01
+)
+
+# Standardize inputs
+model$set_standardization(X)
+```
+
+Train the model using the prepared tensors (above).
+
+``` r
+# Train
+model$train(
+  X_train = train_data$x,
+  t_train = train_data$time,
+  e_train = train_data$event
+)
+```
+
+Create a Survex explainer object from the trained model, and use the
+resulting object in any Survex function.
+
+``` r
+# Create Survex explainer
+explainer <- make_deepsurv_explainer(model, dat, 'time', 'status')
+plot(model_parts(explainer))
+```
+
 ## References
 
 Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &

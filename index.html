@@ -120,6 +120,55 @@
 <h2 id="how-to-produce-a-counterfactual-explanation-with-survex">How to Produce a Counterfactual Explanation with <code>survex</code>
 <a class="anchor" aria-label="anchor" href="#how-to-produce-a-counterfactual-explanation-with-survex"></a>
 </h2>
+<div class="section level3">
+<h3 id="integrating-deepsurv-with-survex-explainer-object">Integrating DeepSuRv with Survex Explainer Object<a class="anchor" aria-label="anchor" href="#integrating-deepsurv-with-survex-explainer-object"></a>
+</h3>
+<p>Below provides a brief tutorial of the DeepSuRv - Survex integration process using the veteran data from the Survival package. Please refer <a href="https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html">here</a> for more information.</p>
+<p>Begin by preprocessing the data, converting the outputs to torch tensors (necessary to train the DeepSuRv model), and ordering by descending time.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Preprocess data</span></span>
+<span><span class="va">veteran_prep</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/prep_data.html">prep_data</a></span><span class="op">(</span><span class="va">veteran</span>, <span class="st">'time'</span>, <span class="st">'status'</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">veteran_prep</span><span class="op">$</span><span class="va">X_mat</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">veteran_prep</span><span class="op">$</span><span class="va">dat</span></span>
+<span></span>
+<span><span class="co"># Convert to torch tensors</span></span>
+<span><span class="va">train_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="fu">torch_tensor</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>, dtype <span class="op">=</span> <span class="fu">torch_float</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  time <span class="op">=</span> <span class="fu">torch_tensor</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">time</span>, dtype <span class="op">=</span> <span class="fu">torch_float</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  event <span class="op">=</span> <span class="fu">torch_tensor</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">status</span>, dtype <span class="op">=</span> <span class="fu">torch_float</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Order by descending time</span></span>
+<span><span class="va">order_idx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">train_data</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">train_data</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">train_data</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="va">order_idx</span>, <span class="op">]</span></span>
+<span><span class="va">train_data</span><span class="op">$</span><span class="va">time</span> <span class="op">&lt;-</span> <span class="va">train_data</span><span class="op">$</span><span class="va">time</span><span class="op">[</span><span class="va">order_idx</span><span class="op">]</span></span>
+<span><span class="va">train_data</span><span class="op">$</span><span class="va">event</span> <span class="op">&lt;-</span> <span class="va">train_data</span><span class="op">$</span><span class="va">event</span><span class="op">[</span><span class="va">order_idx</span><span class="op">]</span></span></code></pre></div>
+<p>Initialize and standardize the model. This uses a basic model with standardization, which is not necessary but improves convergence efficiency.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Initialize model</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="va"><a href="reference/DeepSuRv.html">DeepSuRv</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  n_in <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span>,</span>
+<span>  hidden_layers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">16</span><span class="op">)</span>,</span>
+<span>  dropout <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  learning_rate <span class="op">=</span> <span class="fl">0.01</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Standardize inputs</span></span>
+<span><span class="va">model</span><span class="op">$</span><span class="fu">set_standardization</span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span></code></pre></div>
+<p>Train the model using the prepared tensors (above).</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Train</span></span>
+<span><span class="va">model</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span></span>
+<span>  X_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">x</span>,</span>
+<span>  t_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">time</span>,</span>
+<span>  e_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">event</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Create a Survex explainer object from the trained model, and use the resulting object in any Survex function.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create Survex explainer</span></span>
+<span><span class="va">explainer</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/make_deepsurv_explainer.html">make_deepsurv_explainer</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">dat</span>, <span class="st">'time'</span>, <span class="st">'status'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">model_parts</span><span class="op">(</span><span class="va">explainer</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
