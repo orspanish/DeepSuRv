@@ -15,8 +15,8 @@ You can install the development version of DeepSuRv from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("orspanish/DeepSuRv")
+# install.packages("devtools")
+devtools::install_github("orspanish/DeepSuRv")
 ```
 
 ## Example
