@@ -28,7 +28,7 @@ Imports:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-URL: https://github.com/orspanish/DeepSuRv
+URL: https://github.com/orspanish/DeepSuRv, https://orspanish.github.io/DeepSuRv/
 BugReports: https://github.com/orspanish/DeepSuRv/issues
 References:
   Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).
