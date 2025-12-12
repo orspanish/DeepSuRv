@@ -19,7 +19,7 @@ DeepSuRv offers:
   source framework equivalent to Python’s `PyTorch`.
 
 - Support for flexible network architectures that the user can define
-  (e.g. number of layers, activations, dropout rates, etc.).
+  (e.g. number of layers, activations, dropout rates, etc.).
 
 - Functions for training, predicting, and evaluating deep survival
   models.
@@ -77,35 +77,6 @@ You can install the development version of DeepSuRv from
 devtools::install_github("orspanish/DeepSuRv")
 ```
 
-- **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
-  features (Age, Menopausal status, tumor localization, tumor size,
-  estrogen and progesterone receptor status, tumor grading, histologic
-  tumor type, and number of involved lymph nodes); The endpoint is
-  recurrence free survival, which occurred for 299 patients (43.6%).
-
-- **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14
-  features (AFIB indicator, Age in years at hospital admission, Complete
-  heart block indicator, BMI, Congestive heart complications indicator,
-  History of cardiovascular disease indicator, Initial diastolic blood
-  pressure, Initial systolic blood pressure, gender, Initial heart rate,
-  Length of hospital stay, Acute myocardial infarction (MI) order, MI
-  type, Cardiogenic shock indicator); The endpoint is death, which
-  occurred for 215 patients (43.0%).
-
-## How to Train a DeepSurv Model
-
-## How to Produce a Counterfactual Explanation with `survex`
-
-## References
-
-Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
-Kluger, Y. (2018).  
-*DeepSurv: Personalized Treatment Recommender System Using a Cox
-Proportional Hazards Deep Neural Network*.  
-Proceedings of the Machine Learning for Healthcare Conference,
-312–325.  
-<https://github.com/jaredleekatzman/DeepSurv> 
-
 ## Descriptions of Datasets Available in the Package
 
 - **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
@@ -132,9 +103,8 @@ Proceedings of the Machine Learning for Healthcare Conference,
 Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
 Kluger, Y. (2018).  
 *DeepSurv: Personalized Treatment Recommender System Using a Cox
-Proportional Hazards Deep Neural Network*.  
-Proceedings of the Machine Learning for Healthcare Conference,
-312–325.  
+Proportional Hazards Deep Neural Network*. Proceedings of the Machine
+Learning for Healthcare Conference, 312–325.  
 <https://github.com/jaredleekatzman/DeepSurv>
 
 Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P.
