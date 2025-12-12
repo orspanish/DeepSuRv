@@ -1,0 +1,27 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://orspanish.github.io/DeepSuRv/404.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/LICENSE-text.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/articles/DeepSuRv_tutorial.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/articles/index.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/authors.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/index.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/DeepSuRv.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_apply_constraints.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_compare_one.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_generate_curves.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_perturb_multi.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_plot.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_stability.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/cf_top_features.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/format_dataset_to_df.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/get_optimizer_from_str.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/index.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/load_datasets.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/make_deepsurv_explainer.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/negative_log_likelihood.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/prep_data.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/prepare_data.html</loc></url>
+<url><loc>https://orspanish.github.io/DeepSuRv/reference/standardize_x.html</loc></url>
+</urlset>
+
