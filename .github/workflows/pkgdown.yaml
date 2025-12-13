@@ -31,10 +31,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Clean temporary libraries
+        run: rm -rf /tmp/Rtmp*/pkg-lib*
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::pkgdown, local::.
-          needs: website
+          extra-packages: any::pkgdown
+          dependencies: "Imports+Suggests"
 
       - name: Install torch package
         run: Rscript -e 'install.packages("torch")'
