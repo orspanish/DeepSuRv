@@ -21,13 +21,13 @@
 #' @export
 cf_top_features <- function(expl, x_row, k = 3, eps = 0.05) {
   x_row <- .cols_like(expl, x_row)  #Align column names
-  r0 <- as.numeric(expl$predict_function(x_row))  #Compute the original risk
+  r0 <- as.numeric(expl$predict_function(expl$model, x_row))  #Compute the original risk
   feats <- colnames(expl$data)
 
   #Increase each feature by eps and see which causes the largest change in risk
   delta <- vapply(feats, function(f) {
     x1 <- x_row; x1[[f]] <- x1[[f]] * (1 + eps)
-    r1 <- as.numeric(expl$predict_function(x1))
+    r1 <- as.numeric(expl$predict_function(expl$model, x1))
     abs(r1 - r0)
   }, numeric(1))
 
@@ -60,13 +60,13 @@ cf_top_features <- function(expl, x_row, k = 3, eps = 0.05) {
 #' @export
 cf_compare_one <- function(expl, x_row, feature, change = -0.10) {
   x_row <- .cols_like(expl, x_row)
-  S0 <- expl$predict_survival_function(x_row)  #original survival curve
-  r0 <- as.numeric(expl$predict_function(x_row))  #original risk score
+  S0 <- expl$predict_survival_function(expl$model, x_row, expl$times)  #original survival curve
+  r0 <- as.numeric(expl$predict_function(expl$model, x_row))  #original risk score
 
   x1 <- x_row
   x1[[feature]] <- x1[[feature]] * (1 + change)
-  S1 <- expl$predict_survival_function(x1)  #new survival curve
-  r1 <- as.numeric(expl$predict_function(x1))  #new risk score
+  S1 <- expl$predict_survival_function(expl$model, x1, expl$times)  #new survival curve
+  r1 <- as.numeric(expl$predict_function(expl$model, x1))  #new risk score
 
   list(times = expl$times %||% seq_len(ncol(S0)),
        S_orig = as.numeric(S0[1, ]), S_cf = as.numeric(S1[1, ]),
@@ -81,6 +81,7 @@ cf_compare_one <- function(expl, x_row, feature, change = -0.10) {
 #' @param main Character; plot title.
 #'
 #' @return A base R plot displaying survival curves.
+#' @importFrom graphics lines legend
 #' @examples
 #' # cf_plot(cf_result)
 #' @export
@@ -172,8 +173,8 @@ cf_perturb_multi <- function(x_row, changes, constraints = NULL) {
 #' @export
 cf_generate_curves <- function(expl, x_row, change_list, constraints = NULL) {
   x_row <- .cols_like(expl, x_row)
-  S0 <- expl$predict_survival_function(x_row)
-  r0 <- as.numeric(expl$predict_function(x_row))
+  S0 <- expl$predict_survival_function(expl$model, x_row, expl$times)
+  r0 <- as.numeric(expl$predict_function(expl$model, x_row))
   # Extract the time points for survival curves
   times <- expl$times %||% seq_len(ncol(S0))
   # Create an empty list out, where each element corresponds to one scenario
@@ -182,8 +183,8 @@ cf_generate_curves <- function(expl, x_row, change_list, constraints = NULL) {
   # For each scenario, modify the specified features and apply biological constraints
   for (nm in names(change_list)) {
     x1 <- cf_perturb_multi(x_row, change_list[[nm]], constraints)
-    S1 <- expl$predict_survival_function(x1)
-    r1 <- as.numeric(expl$predict_function(x1))
+    S1 <- expl$predict_survival_function(expl$model, x1, expl$times)
+    r1 <- as.numeric(expl$predict_function(expl$model, x1))
     out[[nm]] <- list(times = times,
                       S_orig = as.numeric(S0[1, ]), S_cf = as.numeric(S1[1, ]),
                       risk_orig = r0, risk_cf = r1, x_cf = x1)
@@ -206,6 +207,7 @@ cf_generate_curves <- function(expl, x_row, change_list, constraints = NULL) {
 #' @return A named numeric vector with mean and standard deviation of
 #'   predicted risks under jittered perturbations.
 #'
+#' @importFrom stats runif
 #' @examples
 #' # cf_stability(expl, patient[1, ], c(bmi = 0.05))
 #' @export
@@ -217,7 +219,7 @@ cf_stability <- function(expl, x_row, base_change, n = 10, jitter = 0.02, seed =
     jit <- base_change + runif(length(base_change), -jitter, jitter)
     names(jit) <- names(base_change)
     x1 <- cf_perturb_multi(x_row, jit)
-    as.numeric(expl$predict_function(x1))
+    as.numeric(expl$predict_function(expl$model, x1))
   })
   # If sd is small, it indicates that the model is stable under small perturbations
   c(mean = mean(risks), sd = sd(risks))
