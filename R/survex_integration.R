@@ -65,7 +65,7 @@ make_deepsurv_explainer <- function(model, data, time_col, event_col) {
   }
 
   # risk prediction function
-  predict_fun <- function(model, newdata) {
+  predict_fun <- function(newdata) {
     model$predict_risk(newdata)
   }
 
