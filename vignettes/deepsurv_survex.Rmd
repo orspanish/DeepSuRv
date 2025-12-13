@@ -154,6 +154,7 @@ model's predictions.
 
 ```{r plot, fig.alt="Feature importance plot showing Brier Score loss for variables included in full model"}
 plot(model_parts(explainer))
+
 ```
 Visualizing variable importance helps communicate which factors the model relies
 on most. This has previously been a weakness of neural network models, which are

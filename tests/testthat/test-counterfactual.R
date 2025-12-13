@@ -43,8 +43,11 @@ test_that("Part 1: feature ranking and single-feature counterfactual run", {
   expect_length(cf_out$S_orig, length(cf_out$times))
   expect_length(cf_out$S_cf,   length(cf_out$times))
 
-  # plotting should not error
-  expect_silent(cf_plot(cf_out))
+  expect_silent({
+    grDevices::pdf(NULL)
+    on.exit(grDevices::dev.off(), add = TRUE)
+    cf_plot(cf_out)
+  })
 })
 
 test_that("Part 2: multi-feature perturbation with constraints works", {
