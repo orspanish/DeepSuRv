@@ -8,6 +8,7 @@
 #' @return A survex explainer object.
 #' @import survival
 #' @import survex
+#' @importFrom stats approx
 #' @export
 make_deepsurv_explainer <- function(model, data, time_col, event_col) {
 
