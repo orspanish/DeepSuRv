@@ -17,12 +17,12 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
+    dplyr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     torch,
     jsonlite,
-    hdf5r,
     survex,
     survival,
     knitr,
@@ -30,8 +30,5 @@ Imports:
 VignetteBuilder: knitr
 URL: https://github.com/orspanish/DeepSuRv, https://orspanish.github.io/DeepSuRv/
 BugReports: https://github.com/orspanish/DeepSuRv/issues
-References:
-  Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).
-  DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional
-  Hazards Deep Neural Network. Proceedings of the Machine Learning for Healthcare
-  Conference.
+References: Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018). DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional Hazards Deep Neural Network. Proceedings of the Machine Learning for Healthcare Conference.
+  Spytek, Mikołaj, et al. "survex: an R package for explaining machine learning survival models." Bioinformatics 39.12 (2023): btad723.
