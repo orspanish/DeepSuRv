@@ -7,16 +7,16 @@
 make_deepsurv_explainer(model, data, time_col, event_col)
 }
 \arguments{
-\item{model}{A trained DeepSuRv model object.}
+\item{model}{A trained DeepSuRv model.}
 
 \item{data}{A data.frame containing covariates + survival columns.}
 
-\item{time_col}{Name of the survival time column.}
+\item{time_col}{Name of survival time variable.}
 
-\item{event_col}{Name of the event indicator column (1 = event).}
+\item{event_col}{Name of event indicator (1 = event).}
 }
 \value{
-A survex explainer object created by survex::explain_survival()
+A survex explainer object.
 }
 \description{
 Create a survex explainer object for a trained DeepSuRv model

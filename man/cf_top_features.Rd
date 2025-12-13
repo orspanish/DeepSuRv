@@ -19,8 +19,8 @@ cf_top_features(expl, x_row, k = 3, eps = 0.05)
 A data frame containing the top influential features and their absolute risk changes.
 }
 \description{
-This function perturbs each feature slightly and measures the change in predicted risk,
-ranking features by their absolute effect on the model output.
+Perturbs each feature slightly and measures the change in predicted risk.
+Ranks features by their absolute effect on the output.
 }
 \examples{
 # cf_top_features(expl, patient_data[1, ])

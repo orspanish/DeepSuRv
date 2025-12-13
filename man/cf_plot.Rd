@@ -15,7 +15,7 @@ cf_plot(cf_out, main = "Counterfactual")
 A base R plot displaying survival curves.
 }
 \description{
-Simple visualization comparing the original and counterfactual survival curves from cf_compare_one().
+Simple visualization comparing the original and counterfactual survival curves.
 }
 \examples{
 # cf_plot(cf_result)

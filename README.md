@@ -7,7 +7,65 @@
 
 <!-- badges: end -->
 
-The goal of DeepSuRv is to …
+DeepSuRv is an R implementation of the DeepSurv feed-forward neural
+network-based Cox proportional hazards model originally developed in
+Python using the Theano and Lasagne libraries as the main NN
+architecture: <https://github.com/jaredleekatzman/DeepSurv.git>
+
+DeepSuRv offers:
+
+- DeepSurv’s neural network survival model in a full native-R
+  implementation backed by the `torch` R package. `torch` is R’s open
+  source framework equivalent to Python’s `PyTorch`.
+
+- Support for flexible network architectures that the user can define
+  (e.g. number of layers, activations, dropout rates, etc.).
+
+- Functions for training, predicting, and evaluating deep survival
+  models.
+
+- Integration with the `survex` R package to generate counterfactual
+  explanations for individual survival predictions.
+
+- A user-friendly workflow that promotes reproducibility and
+  interpretability.
+
+DeepSuRv enables researchers to train and interpret neural network
+survival models through counterfactual reasoning in R.
+
+## Key Features
+
+### DeepSurv Model in R
+
+- Feed-forward neural network that produces log-hazard outputs
+
+- Trained using the partial log-likelihood loss of the Cox model
+
+- GPU support via `torch` when applicable
+
+- Compatibility with tidy data workflows
+
+- Returns concordance index (C-index) and loss during training
+
+### Counterfactual Explanations with `survex`
+
+DeepSuRv adds new functionality to the original DeepSurv workflow by
+enabling counterfactual explanations for the neural network model it
+creates using. `survex`: <https://github.com/ModelOriented/survex.git>.
+
+`survex` provides infrastructure for:
+
+- Counterfactual survival curves
+
+- Perturbation-based variable importance
+
+- Model stability checks
+
+- Generation of actionable and human-interpretable explanations
+
+DeepSuRv’s prediction interface is fully compatible with `survex`, so
+users can pass DeepSuRv models directly into the counterfactual
+functions found in the `survex` package (more to follow below).
 
 ## Installation
 
@@ -15,39 +73,163 @@ You can install the development version of DeepSuRv from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("orspanish/DeepSuRv")
+# install.packages("devtools")
+devtools::install_github("orspanish/DeepSuRv")
 ```
 
-## Example
+## Descriptions of Datasets Available in the Package
 
-This is a basic example which shows you how to solve a common problem:
+- **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
+  features (Age, Menopausal status, tumor localization, tumor size,
+  estrogen and progesterone receptor status, tumor grading, histologic
+  tumor type, and number of involved lymph nodes); The endpoint is
+  recurrence free survival, which occurred for 299 patients (43.6%).
+
+- **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14
+  features (AFIB indicator, Age in years at hospital admission, Complete
+  heart block indicator, BMI, Congestive heart complications indicator,
+  History of cardiovascular disease indicator, Initial diastolic blood
+  pressure, Initial systolic blood pressure, gender, Initial heart rate,
+  Length of hospital stay, Acute myocardial infarction (MI) order, MI
+  type, Cardiogenic shock indicator); The endpoint is death, which
+  occurred for 215 patients (43.0%).
+
+## How to Train a DeepSurv Model
+
+This demonstration gives a condensed tutorial of how to train a DeepSuRv
+model, make predictions, and compute a bootstrap C-index. For more
+information on this, please refer to this [applied
+tutorial](https://orspanish.github.io/DeepSuRv/articles/DeepSuRv_tutorial.html).
+
+### Data Set-up
+
+Begin by loading a dataset and selecting a few features, along with
+survival time and event indicators.
+
+    data(lung, package = "survival")
+    lung <- na.omit(lung)
+
+
+    X <- as.matrix(lung[, c("age", "ph.karno", "meal.cal")])
+    t <- lung$time
+    e <- lung$status
+
+### Initialize the DeepSuRv Model and Standardize
+
+Create a DeepSuRv object and specify the neural network architecture and
+training settings. DeepSuRv includes built-in standardization. Means and
+standard deviations are computed and stored before training.
+
+    model <- DeepSuRv$new(
+    n_in = ncol(X),
+    hidden_layers = c(32, 16),
+    dropout = 0.1,
+    learning_rate = 0.001,
+    n_epochs = 20
+    )
+
+### Train the Model
+
+Fit the neural network using the Cox partial likelihood.
+
+    model$train(X, t, e, verbose = TRUE)
+
+### Predict Risk Scores
+
+After training, risk predictions for new observations can be generated.
+
+    predicted_risk <- model$predict_risk(X)
+    head(predicted_risk)
+
+### Compute a Bootstrap C-index
+
+Lastly, the model’s concordance index and bootstrap confidence interval
+can be estimated.
+
+    ci <- model$bootstrap_cindex(X, t, e, n_boot = 50)
+    ci
+
+## How to Produce a Counterfactual Explanation with `survex`
+
+### Integrating DeepSuRv with Survex Explainer Object
+
+Below provides a brief tutorial of the DeepSuRv - Survex integration
+process using the veteran data from the Survival package. Please refer
+[here](https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html)
+for more information.
+
+Begin by preprocessing the data, converting the outputs to torch tensors
+(necessary to train the DeepSuRv model), and ordering by descending
+time.
 
 ``` r
-library(DeepSuRv)
-## basic example code
+# Preprocess data
+veteran_prep <- prep_data(veteran, 'time', 'status')
+X <- veteran_prep$X_mat
+dat <- veteran_prep$dat
+
+# Convert to torch tensors
+train_data <- list(
+  x = torch_tensor(as.matrix(X), dtype = torch_float()),
+  time = torch_tensor(dat$time, dtype = torch_float()),
+  event = torch_tensor(dat$status, dtype = torch_float())
+)
+
+# Order by descending time
+order_idx <- order(as.numeric(train_data$time), decreasing = TRUE)
+train_data$x <- train_data$x[order_idx, ]
+train_data$time <- train_data$time[order_idx]
+train_data$event <- train_data$event[order_idx]
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+Initialize and standardize the model. This uses a basic model with
+standardization, which is not necessary but improves convergence
+efficiency.
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+# Initialize model
+model <- DeepSuRv$new(
+  n_in = ncol(X),
+  hidden_layers = c(16),
+  dropout = 0,
+  learning_rate = 0.01
+)
+
+# Standardize inputs
+model$set_standardization(X)
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+Train the model using the prepared tensors (above).
 
-You can also embed plots, for example:
+``` r
+# Train
+model$train(
+  X_train = train_data$x,
+  t_train = train_data$time,
+  e_train = train_data$event
+)
+```
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+Create a Survex explainer object from the trained model, and use the
+resulting object in any Survex function.
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+``` r
+# Create Survex explainer
+explainer <- make_deepsurv_explainer(model, dat, 'time', 'status')
+plot(model_parts(explainer))
+```
+
+## References
+
+Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
+Kluger, Y. (2018).  
+*DeepSurv: Personalized Treatment Recommender System Using a Cox
+Proportional Hazards Deep Neural Network*. Proceedings of the Machine
+Learning for Healthcare Conference, 312–325.  
+<https://github.com/jaredleekatzman/DeepSurv>
+
+Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P.
+survex: an R package for explaining machine learning survival models.
+Bioinformatics. 2023 Dec 1;39(12):btad723. doi:
+10.1093/bioinformatics/btad723. PMID: 38039146; PMCID: PMC11025379.
+<https://github.com/ModelOriented/survex/>

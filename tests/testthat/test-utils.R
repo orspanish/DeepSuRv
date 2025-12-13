@@ -5,13 +5,6 @@
 #
 # The use of "<<-" ensures that "lasagne" is assigned globally,
 # so that the DeepSurv functions under test can access it within the package namespace during test execution.
-lasagne <<- list(
-  updates = list(
-    sgd = "lasagne.updates.sgd",
-    adam = "lasagne.updates.adam",
-    rmsprop = "lasagne.updates.rmsprop"
-  )
-)
 
 # test 1：get_optimizer_from_str
 test_that("get_optimizer_from_str returns correct optimizer functions", {

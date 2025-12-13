@@ -1,5 +1,8 @@
 ---
 output: github_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -16,118 +19,236 @@ knitr::opts_chunk$set(
 # DeepSuRv
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
-The goal of DeepSuRv is to ...
+DeepSuRv is an R implementation of the DeepSurv feed-forward neural
+network-based Cox proportional hazards model originally developed in
+Python using the Theano and Lasagne libraries as the main NN
+architecture: <https://github.com/jaredleekatzman/DeepSurv.git>
+
+DeepSuRv offers:
+
+-   DeepSurv's neural network survival model in a full native-R
+    implementation backed by the `torch` R package. `torch` is R's open
+    source framework equivalent to Python's `PyTorch`.
+
+-   Support for flexible network architectures that the user can define
+    (e.g. number of layers, activations, dropout rates, etc.).
+
+-   Functions for training, predicting, and evaluating deep survival
+    models.
+
+-   Integration with the `survex` R package to generate counterfactual
+    explanations for individual survival predictions.
+
+-   A user-friendly workflow that promotes reproducibility and
+    interpretability.
+
+DeepSuRv enables researchers to train and interpret neural network
+survival models through counterfactual reasoning in R.
+
+## Key Features
+
+### DeepSurv Model in R
+
+-   Feed-forward neural network that produces log-hazard outputs
+
+-   Trained using the partial log-likelihood loss of the Cox model
+
+-   GPU support via `torch` when applicable
+
+-   Compatibility with tidy data workflows
+
+-   Returns concordance index (C-index) and loss during training
+
+### Counterfactual Explanations with `survex`
+
+DeepSuRv adds new functionality to the original DeepSurv workflow by
+enabling counterfactual explanations for the neural network model it
+creates using. `survex`: <https://github.com/ModelOriented/survex.git>.
+
+`survex` provides infrastructure for:
+
+-   Counterfactual survival curves
+
+-   Perturbation-based variable importance
+
+-   Model stability checks
+
+-   Generation of actionable and human-interpretable explanations
+
+DeepSuRv's prediction interface is fully compatible with `survex`, so
+users can pass DeepSuRv models directly into the counterfactual
+functions found in the `survex` package (more to follow below).
 
 ## Installation
 
-You can install the development version of DeepSuRv from [GitHub](https://github.com/) with:
+You can install the development version of DeepSuRv from
+[GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("orspanish/DeepSuRv")
+# install.packages("devtools")
+devtools::install_github("orspanish/DeepSuRv")
 ```
-
-## Python Environment Setup
-
-The survival datasets used in this package are provided by the
-[**survival-datasets** repository](https://github.com/thecml/survival-datasets),
-which requires Python ≥ 3.8 and other packages (e.g., NumPy, pandas,
-scikit-survival, shap, PyArrow).
-
-To keep things simple and reproducible, this package depends on the `reticulate`
-R package to create a dedicated Conda environment named `survdata_env` for all
-users to access these datasets.
-
-### One-Time Setup
-
-After installing this package, run this once:
-
-``` r
-library(DeepSuRv)
-setup_survdata_env()
-```
-
-This will do the following:
-
-* Install Miniconda (if not already installed)
-* Create a conda environment called `survdata_env`
-* Install Python 3.10
-* Install NumPy, pandas, scikit-survival, shap, PyArrow
-
-After running `setup_survdata_env()` once, you can use the package like any 
-other package. We recommend running `list_survdata_datasets()` first to see the 
-available datasets (more on dataset descriptions below). Use the names returned
-from this output to import the datasets from the Python library as follows:
-
-``` r
-library(DeepSuRv)
-
-list_survdata_datasets()
-Xy <- load_survdata_dataset("veterans")
-veterans <- as.data.frame(Xy[1]) 
-```
-
-The environment will be automatically activated when the package is loaded.
-Users do not need to configure the environment every session.
 
 ## Descriptions of Datasets Available in the Package
 
-* **Veterans' Administration Lung Cancer Trial:** 137 patients and 6 features
-(Age in years, Cell type, Karnofsky score, Months from diagnosis, Prior therapy,
-and Treatment); The endpoint is death, which occurred for 128 patients (93.4%)
+-   **German Breast Cancer Study Group (GBSG2):** 686 patients and 8
+    features (Age, Menopausal status, tumor localization, tumor size,
+    estrogen and progesterone receptor status, tumor grading, histologic
+    tumor type, and number of involved lymph nodes); The endpoint is
+    recurrence free survival, which occurred for 299 patients (43.6%).
 
-* **German Breast Cancer Study Group (GBSG2):** 686 patients and 8 features 
-(Age, Menopausal status, tumor localization, tumor size, estrogen and 
-progesterone receptor status, tumor grading, histologic tumor type, and number
-of involved lymph nodes); The endpoint is recurrence free survival, which 
-occurred for 299 patients (43.6%).
+-   **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14
+    features (AFIB indicator, Age in years at hospital admission,
+    Complete heart block indicator, BMI, Congestive heart complications
+    indicator, History of cardiovascular disease indicator, Initial
+    diastolic blood pressure, Initial systolic blood pressure, gender,
+    Initial heart rate, Length of hospital stay, Acute myocardial
+    infarction (MI) order, MI type, Cardiogenic shock indicator); The
+    endpoint is death, which occurred for 215 patients (43.0%).
 
-* **AIDS Clinical Trial:** 1,151 patients and 11 features (Age at Enrollment
-in Years, Baseline CD4, Binary indication of Hemophilia, IV Drug Use History,
-Karnofsky score, Months of prior ZDV use, Race/Ethnicity, Sex, CD4 stratum at 
-screening, treatment indicator, treatment group indicator); There were two 
-endpoints: AIDS defining event (96 patients, 8.3%) or death (26 patients, 2.3%).
+## How to Train a DeepSurv Model
 
-* **NHANES:** 14,264 observations and 79 variables (laboratory 
-measurements, vital signs, sex, age, physical activity level)
+This demonstration gives a condensed tutorial of how to train a DeepSuRv model,
+make predictions, and compute a bootstrap C-index. For more information on this,
+please refer to this [applied tutorial]( https://orspanish.github.io/DeepSuRv/articles/DeepSuRv_tutorial.html).
 
-* **SUPPORT (Study to Understand Prognoses Preferences Outcomes and Risks of Treatment):**
-9,105 patients and 14 features (age, sex, race, number of comorbidities,
-presence of diabetes, presence of dementia, presence of cancer, mean arterial
-blood pressure, heart rate, respiration rate, temperature, white blood cell
-count, serum’s sodium, and serum’s creatinine); The endpoint is death.
+### Data Set-up
+Begin by loading a dataset and selecting a few features, along with survival
+time and event indicators.
 
-* **METABRIC (The Molecular Taxonomy of Breast Cancer International Consortium):**
-1,980 patients and 4 gene indicators (MKI67, EGFR, PGR, ERBB2) in addition to
-patients' clinical features (hormone treatment indicator, radiotherapy indicator, 
-chemotherapy indicator, ER-positive indicator, and age at diagnosis); The 
-endpoint is death (57.72% of patients).
+```
+data(lung, package = "survival")
+lung <- na.omit(lung)
 
-* **WHAS500 (Worcester Heart Attack Study):** 500 patients and 14 features 
-(AFIB indicator, Age in years at hospital admission, Complete heart block 
-indicator, BMI, Congestive heart complications indicator, History of 
-cardiovascular disease indicator, Initial diastolic blood pressure, Initial 
-systolic blood pressure, gender, Initial heart rate, Length of hospital stay,
-Acute myocardial infarction (MI) order, MI type, Cardiogenic shock indicator);
-The endpoint is death, which occurred for 215 patients (43.0%).
 
-* **FLCHAIN (Serum Immunoglobulin Free Light Chain):** 7,874 patients and 9
-features (Age in years, Sex, Calendar year blood sample was obtained, kappa
-portion of SFLC, lambda portion of SFLC, SFLC group for subject, serum creatine, 
-Monoclonal gammapothy indicator, Primary cause of death if deceased); The 
-endpoint is death, which occurred for 2,169 subjects (27.5%).
+X <- as.matrix(lung[, c("age", "ph.karno", "meal.cal")])
+t <- lung$time
+e <- lung$status
+```
 
-* **SEER (Surveillance, Epidemiology, and End Results Program from NCI):**
-4,024 patients and 16 features (Age, Race, Marital status, T stage, N stage, 
-6th stage, Differentiation status, Grade, A stage, Tumor size, Estrogen status,
-Progesterone status, Regional node examined, Reginol node positive, Survival 
-months, Status); The endpoint is death, which occurred for 15% of patients.
+### Initialize the DeepSuRv Model and Standardize 
+Create a DeepSuRv object and specify the neural network architecture and
+training settings. DeepSuRv includes built-in standardization. Means and 
+standard deviations are computed and stored before training.
 
-# References
+```
+model <- DeepSuRv$new(
+n_in = ncol(X),
+hidden_layers = c(32, 16),
+dropout = 0.1,
+learning_rate = 0.001,
+n_epochs = 20
+)
+```
 
-Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).  
-*DeepSurv: Personalized Treatment Recommender System Using a Cox Proportional Hazards Deep Neural Network*.  
-Proceedings of the Machine Learning for Healthcare Conference, 312–325.  
-https://github.com/jaredleekatzman/DeepSurv
+### Train the Model
+Fit the neural network using the Cox partial likelihood.
+
+```
+model$train(X, t, e, verbose = TRUE)
+```
+
+### Predict Risk Scores
+After training, risk predictions for new observations can be generated.
+
+```
+predicted_risk <- model$predict_risk(X)
+head(predicted_risk)
+```
+
+### Compute a Bootstrap C-index
+Lastly, the model's concordance index and bootstrap confidence interval can be
+estimated.
+
+```
+ci <- model$bootstrap_cindex(X, t, e, n_boot = 50)
+ci
+```
+
+## How to Produce a Counterfactual Explanation with `survex`
+
+### Integrating DeepSuRv with Survex Explainer Object
+
+Below provides a brief tutorial of the DeepSuRv - Survex integration
+process using the veteran data from the Survival package. Please refer
+[here](https://orspanish.github.io/DeepSuRv/articles/deepsurv_survex.html)
+for more information.
+
+Begin by preprocessing the data, converting the outputs to torch tensors
+(necessary to train the DeepSuRv model), and ordering by descending
+time.
+
+``` r
+# Preprocess data
+veteran_prep <- prep_data(veteran, 'time', 'status')
+X <- veteran_prep$X_mat
+dat <- veteran_prep$dat
+
+# Convert to torch tensors
+train_data <- list(
+  x = torch_tensor(as.matrix(X), dtype = torch_float()),
+  time = torch_tensor(dat$time, dtype = torch_float()),
+  event = torch_tensor(dat$status, dtype = torch_float())
+)
+
+# Order by descending time
+order_idx <- order(as.numeric(train_data$time), decreasing = TRUE)
+train_data$x <- train_data$x[order_idx, ]
+train_data$time <- train_data$time[order_idx]
+train_data$event <- train_data$event[order_idx]
+```
+
+Initialize and standardize the model. This uses a basic model with
+standardization, which is not necessary but improves convergence
+efficiency.
+
+``` r
+# Initialize model
+model <- DeepSuRv$new(
+  n_in = ncol(X),
+  hidden_layers = c(16),
+  dropout = 0,
+  learning_rate = 0.01
+)
+
+# Standardize inputs
+model$set_standardization(X)
+```
+
+Train the model using the prepared tensors (above).
+
+``` r
+# Train
+model$train(
+  X_train = train_data$x,
+  t_train = train_data$time,
+  e_train = train_data$event
+)
+```
+
+Create a Survex explainer object from the trained model, and use the
+resulting object in any Survex function.
+
+``` r
+# Create Survex explainer
+explainer <- make_deepsurv_explainer(model, dat, 'time', 'status')
+plot(model_parts(explainer))
+```
+
+## References
+
+Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., &
+Kluger, Y. (2018).\
+*DeepSurv: Personalized Treatment Recommender System Using a Cox
+Proportional Hazards Deep Neural Network*. Proceedings of the Machine
+Learning for Healthcare Conference, 312–325.\
+<https://github.com/jaredleekatzman/DeepSurv>
+
+Spytek M, Krzyziński M, Langbein SH, Baniecki H, Wright MN, Biecek P.
+survex: an R package for explaining machine learning survival models.
+Bioinformatics. 2023 Dec 1;39(12):btad723. doi:
+10.1093/bioinformatics/btad723. PMID: 38039146; PMCID: PMC11025379.
+<https://github.com/ModelOriented/survex/>

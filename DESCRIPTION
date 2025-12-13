@@ -17,6 +17,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
+    dplyr,
+    readr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
@@ -25,8 +27,10 @@ Imports:
     hdf5r,
     survex,
     survival,
-    reticulate
-URL: https://github.com/orspanish/DeepSuRv
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+URL: https://github.com/orspanish/DeepSuRv, https://orspanish.github.io/DeepSuRv/
 BugReports: https://github.com/orspanish/DeepSuRv/issues
 References:
   Katzman, J. L., Shaham, U., Cloninger, A., Bates, J., Jiang, T., & Kluger, Y. (2018).
