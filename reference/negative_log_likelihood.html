@@ -50,16 +50,16 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-e">E<a class="anchor" aria-label="anchor" href="#arg-e"></a></dt>
-<dd><p>A numeric vector of event indicators (1 = event occurred, 0 = censored).</p></dd>
-
-
-<dt id="arg-self">self<a class="anchor" aria-label="anchor" href="#arg-self"></a></dt>
+<dl><dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
 <dd><p>A model-like object containing a method that returns the predicted log hazard.</p></dd>
 
 
-<dt id="arg-deterministic">deterministic<a class="anchor" aria-label="anchor" href="#arg-deterministic"></a></dt>
-<dd><p>Logical; if TRUE, calculates deterministic network outputs.</p></dd>
+<dt id="arg-x">X<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
+<dd><p>A numeric matrix or data frame of input features, with one row per subject and one column per feature</p></dd>
+
+
+<dt id="arg-e">E<a class="anchor" aria-label="anchor" href="#arg-e"></a></dt>
+<dd><p>A numeric vector of event indicators (1 = event occurred, 0 = censored).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -69,10 +69,28 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">fake_self</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>risk <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">deterministic</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># Create a fake model object with a risk() method</span></span></span>
+<span class="r-in"><span><span class="va">fake_self</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  risk <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="co"># Return a torch tensor of log-risk values,</span></span></span>
+<span class="r-in"><span>    <span class="co"># one per row of the input feature matrix</span></span></span>
+<span class="r-in"><span>    <span class="fu">torch</span><span class="fu">::</span><span class="fu"><a href="https://torch.mlverse.org/docs/reference/torch_tensor.html" class="external-link">torch_tensor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">}</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Feature matrix: one row per subject</span></span></span>
+<span class="r-in"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">55</span>, <span class="fl">70</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  biomarker <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.2</span>, <span class="fl">0.7</span>, <span class="fl">2.1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Event indicator (1 = event, 0 = censored)</span></span></span>
 <span class="r-in"><span><span class="va">E</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">negative_log_likelihood</span><span class="op">(</span><span class="va">fake_self</span>, <span class="va">E</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in model$risk(torch_tensor(as.matrix(X), dtype = torch_float()))$squeeze:</span> $ operator is invalid for atomic vectors</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Compute negative partial log-likelihood</span></span></span>
+<span class="r-in"><span><span class="fu">negative_log_likelihood</span><span class="op">(</span><span class="va">fake_self</span>, <span class="va">X</span>, <span class="va">E</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
