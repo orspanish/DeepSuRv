@@ -91,7 +91,8 @@ model$set_standardization(X)
 ## Train the Model
 We now train the model using the prepared tensors. During training, the network
 learns the relationship between the input features and the survival outcomes.
-More on model training in **INSERT NAME OF DEEPSURV CLASS TUTORIAL ARTICLE**.
+More on model training in the article, "Survival Analysis with Neural Networks,
+a DeepSuRv Tutorial."
 
 ```{r train}
 model$train(

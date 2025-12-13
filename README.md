@@ -96,6 +96,59 @@ devtools::install_github("orspanish/DeepSuRv")
 
 ## How to Train a DeepSurv Model
 
+This demonstration gives a condensed tutorial of how to train a DeepSuRv
+model, make predictions, and compute a bootstrap C-index. For more
+information on this, please refer to this [applied
+tutorial](https://orspanish.github.io/DeepSuRv/articles/DeepSuRv_tutorial.html).
+
+### Data Set-up
+
+Begin by loading a dataset and selecting a few features, along with
+survival time and event indicators.
+
+    data(lung, package = "survival")
+    lung <- na.omit(lung)
+
+
+    X <- as.matrix(lung[, c("age", "ph.karno", "meal.cal")])
+    t <- lung$time
+    e <- lung$status
+
+### Initialize the DeepSuRv Model and Standardize
+
+Create a DeepSuRv object and specify the neural network architecture and
+training settings. DeepSuRv includes built-in standardization. Means and
+standard deviations are computed and stored before training.
+
+    model <- DeepSuRv$new(
+    n_in = ncol(X),
+    hidden_layers = c(32, 16),
+    dropout = 0.1,
+    learning_rate = 0.001,
+    n_epochs = 20
+    )
+
+### Train the Model
+
+Fit the neural network using the Cox partial likelihood.
+
+    model$train(X, t, e, verbose = TRUE)
+
+### Predict Risk Scores
+
+After training, risk predictions for new observations can be generated.
+
+    predicted_risk <- model$predict_risk(X)
+    head(predicted_risk)
+
+### Compute a Bootstrap C-index
+
+Lastly, the model’s concordance index and bootstrap confidence interval
+can be estimated.
+
+    ci <- model$bootstrap_cindex(X, t, e, n_boot = 50)
+    ci
+
 ## How to Produce a Counterfactual Explanation with `survex`
 
 ### Integrating DeepSuRv with Survex Explainer Object
