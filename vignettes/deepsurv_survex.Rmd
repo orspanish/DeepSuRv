@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 library(DeepSuRv)
 library(torch)
 library(survival)
+library(survex)
 ```
 
 # Lung data from survival package
@@ -73,13 +74,14 @@ explainer <- make_deepsurv_explainer(model, dat, 'time', 'status')
 
 Generate model profile and feature importance plot
 ```{r}
-model_profile(explainer, output_type = "survival", variables = c("age", "sex"))
-
-plot(model_parts(explainer))
+if (interactive()) {
+  model_profile(explainer, output_type = "survival", variables = c("age", "sex"))
+  plot(model_parts(explainer))
+}
 ```
 
 # Veteran data from survival package
-```{r}
+```{r survex-demo, eval = FALSE}
 # Prepare data
 X <- veteran[, c(1, 2, 5, 6, 7, 8)]
 complete_rows <- which(rowSums(is.na(X)) == 0)
@@ -130,5 +132,6 @@ explainer <- make_deepsurv_explainer(model, dat, 'time', 'status')
 # Survex integration
 model_profile(explainer, output_type = "survival", variables = c("trt", "age"))
 plot(model_parts(explainer))
+
 ```
 
