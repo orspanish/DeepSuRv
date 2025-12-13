@@ -33,10 +33,17 @@ test_that("standardize_dataset standardizes data correctly", {
 
 # test 3：negative_log_likelihood
 test_that("negative_log_likelihood returns numeric value", {
-  fake_self <- list(risk = function(deterministic) c(0.1, 0.2, 0.3))
+  fake_self <- list(
+    risk = function(deterministic) torch::torch_tensor(c(0.1, 0.2, 0.3))
+  )
+  # small design matrix (3 samples, 2 features)
+  X <- matrix(c(1,2,3,4,5,6), nrow = 3, ncol = 2)
+
+  # event indicator
   E <- c(1, 0, 1)
-  result <- negative_log_likelihood(fake_self, E)
+  result <- negative_log_likelihood(fake_self, X, E)
   expect_true(is.numeric(result))
+
 })
 
 # test 4：bootstrap_metric
