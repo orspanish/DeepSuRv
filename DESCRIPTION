@@ -18,17 +18,17 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests: 
     dplyr,
+    jsonlite,
+    knitr,
     readr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     torch,
-    jsonlite,
     hdf5r,
     survex,
-    survival,
-    knitr,
-    rmarkdown
+    survival
 VignetteBuilder: knitr
 URL: https://github.com/orspanish/DeepSuRv, https://orspanish.github.io/DeepSuRv/
 BugReports: https://github.com/orspanish/DeepSuRv/issues

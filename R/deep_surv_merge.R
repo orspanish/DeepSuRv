@@ -145,11 +145,11 @@ DeepSuRv <- R6::R6Class(
       set.seed(seed)
       n <- length(t)
       scores <- self$predict_risk(X)
-      c_hat <- survConcordance(Surv(t, e) ~ scores)$concordance
+      c_hat <- concordance(Surv(t, e) ~ scores)$concordance
       boot_stats <- numeric(n_boot)
       for (i in 1:n_boot) {
         idx <- sample(1:n, n, replace = TRUE)
-        boot_stats[i] <- survConcordance(Surv(t[idx], e[idx]) ~ scores[idx])$concordance
+        boot_stats[i] <- concordance(Surv(t[idx], e[idx]) ~ scores[idx])$concordance
       }
       lower <- quantile(boot_stats, 0.025, na.rm = TRUE)
       upper <- quantile(boot_stats, 0.975, na.rm = TRUE)
