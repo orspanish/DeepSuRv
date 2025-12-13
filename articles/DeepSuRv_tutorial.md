@@ -92,11 +92,11 @@ argument, `verbose`, which prints the training loss values if desired.
 ``` r
 model_whas$set_standardization(x_train)
 model_whas$train(x_train, t_train, e_train)
-#> Epoch: 10 Loss: 3345.604 
-#> Epoch: 20 Loss: 3342.146 
-#> Epoch: 30 Loss: 3321.036 
-#> Epoch: 40 Loss: 3306.22 
-#> Epoch: 50 Loss: 3308.43
+#> Epoch: 10 Loss: 3352.889 
+#> Epoch: 20 Loss: 3331.616 
+#> Epoch: 30 Loss: 3315.669 
+#> Epoch: 40 Loss: 3305.005 
+#> Epoch: 50 Loss: 3300.91
 ```
 
 During training, the network iteratively updates its weights to minimize
@@ -113,7 +113,7 @@ using the mean and standard deviation computed from the training set.
 ``` r
 scores <- model_whas$predict_risk(x_test)
 head(scores)
-#> [1] 2.940258 3.224050 2.915402 3.274704 2.960247 4.239460
+#> [1] 2.493967 3.089078 2.406424 2.866301 2.777485 3.944201
 ```
 
 ## Evaluation the Model Performance
@@ -138,13 +138,13 @@ correctly ordered in comparison to the observations true order.
 whas_res <- model_whas$bootstrap_cindex(x_test, t_test, e_test)
 whas_res
 #> $cindex
-#> [1] 0.1988945
+#> [1] 0.19094
 #> 
 #> $lower
 #>      2.5% 
-#> 0.1625551 
+#> 0.1560883 
 #> 
 #> $upper
-#>    97.5% 
-#> 0.237385
+#>     97.5% 
+#> 0.2293616
 ```

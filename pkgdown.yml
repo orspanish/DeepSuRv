@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   deepsurv_survex: deepsurv_survex.html
   DeepSuRv_tutorial: DeepSuRv_tutorial.html
-last_built: 2025-12-13T04:27Z
+last_built: 2025-12-13T08:01Z
 urls:
   reference: https://orspanish.github.io/DeepSuRv/reference
   article: https://orspanish.github.io/DeepSuRv/articles

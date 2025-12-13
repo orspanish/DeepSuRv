@@ -160,11 +160,11 @@ DEEPSURV CLASS TUTORIAL ARTICLE</strong>.</p>
 <span>  t_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">time</span>,</span>
 <span>  e_train <span class="op">=</span> <span class="va">train_data</span><span class="op">$</span><span class="va">event</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Epoch: 10 Loss: 191.5768 </span></span>
-<span><span class="co">#&gt; Epoch: 20 Loss: 189.1971 </span></span>
-<span><span class="co">#&gt; Epoch: 30 Loss: 186.8946 </span></span>
-<span><span class="co">#&gt; Epoch: 40 Loss: 184.3454 </span></span>
-<span><span class="co">#&gt; Epoch: 50 Loss: 181.5054</span></span></code></pre></div>
+<span><span class="co">#&gt; Epoch: 10 Loss: 191.9033 </span></span>
+<span><span class="co">#&gt; Epoch: 20 Loss: 188.818 </span></span>
+<span><span class="co">#&gt; Epoch: 30 Loss: 185.9341 </span></span>
+<span><span class="co">#&gt; Epoch: 40 Loss: 183.497 </span></span>
+<span><span class="co">#&gt; Epoch: 50 Loss: 181.3073</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="make-predictions">Make Predictions<a class="anchor" aria-label="anchor" href="#make-predictions"></a>
@@ -176,7 +176,7 @@ sooner.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">risk_scores</span> <span class="op">&lt;-</span> <span class="va">model</span><span class="op">$</span><span class="fu">predict_risk</span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">risk_scores</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -0.9070435  0.3295634 -2.2499833  0.4999236  0.1406885 -0.0506255</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] -0.3494549  0.8338006 -1.8548696  1.2236645  0.5271077  0.5462369</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

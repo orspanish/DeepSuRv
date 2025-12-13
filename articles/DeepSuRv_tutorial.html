@@ -153,11 +153,11 @@ desired.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">model_whas</span><span class="op">$</span><span class="fu">set_standardization</span><span class="op">(</span><span class="va">x_train</span><span class="op">)</span></span>
 <span><span class="va">model_whas</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">x_train</span>, <span class="va">t_train</span>, <span class="va">e_train</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Epoch: 10 Loss: 3345.604 </span></span>
-<span><span class="co">#&gt; Epoch: 20 Loss: 3342.146 </span></span>
-<span><span class="co">#&gt; Epoch: 30 Loss: 3321.036 </span></span>
-<span><span class="co">#&gt; Epoch: 40 Loss: 3306.22 </span></span>
-<span><span class="co">#&gt; Epoch: 50 Loss: 3308.43</span></span></code></pre></div>
+<span><span class="co">#&gt; Epoch: 10 Loss: 3352.889 </span></span>
+<span><span class="co">#&gt; Epoch: 20 Loss: 3331.616 </span></span>
+<span><span class="co">#&gt; Epoch: 30 Loss: 3315.669 </span></span>
+<span><span class="co">#&gt; Epoch: 40 Loss: 3305.005 </span></span>
+<span><span class="co">#&gt; Epoch: 50 Loss: 3300.91</span></span></code></pre></div>
 <p>During training, the network iteratively updates its weights to
 minimize the Cox loss. Each epoch processes all training samples once,
 and the optimizer adjusts the weights based on the gradient of the
@@ -174,7 +174,7 @@ set.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="va">model_whas</span><span class="op">$</span><span class="fu">predict_risk</span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">scores</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 2.940258 3.224050 2.915402 3.274704 2.960247 4.239460</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 2.493967 3.089078 2.406424 2.866301 2.777485 3.944201</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="evaluation-the-model-performance">Evaluation the Model Performance<a class="anchor" aria-label="anchor" href="#evaluation-the-model-performance"></a>
@@ -199,15 +199,15 @@ order.</p>
 <code class="sourceCode R"><span><span class="va">whas_res</span> <span class="op">&lt;-</span> <span class="va">model_whas</span><span class="op">$</span><span class="fu">bootstrap_cindex</span><span class="op">(</span><span class="va">x_test</span>, <span class="va">t_test</span>, <span class="va">e_test</span><span class="op">)</span></span>
 <span><span class="va">whas_res</span></span>
 <span><span class="co">#&gt; $cindex</span></span>
-<span><span class="co">#&gt; [1] 0.1988945</span></span>
+<span><span class="co">#&gt; [1] 0.19094</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $lower</span></span>
 <span><span class="co">#&gt;      2.5% </span></span>
-<span><span class="co">#&gt; 0.1625551 </span></span>
+<span><span class="co">#&gt; 0.1560883 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $upper</span></span>
-<span><span class="co">#&gt;    97.5% </span></span>
-<span><span class="co">#&gt; 0.237385</span></span></code></pre></div>
+<span><span class="co">#&gt;     97.5% </span></span>
+<span><span class="co">#&gt; 0.2293616</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
