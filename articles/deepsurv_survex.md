@@ -90,11 +90,11 @@ model$train(
   t_train = train_data$time,
   e_train = train_data$event
 )
-#> Epoch: 10 Loss: 192.5649 
-#> Epoch: 20 Loss: 190.0925 
-#> Epoch: 30 Loss: 187.8481 
-#> Epoch: 40 Loss: 185.5323 
-#> Epoch: 50 Loss: 183.2098
+#> Epoch: 10 Loss: 192.6921 
+#> Epoch: 20 Loss: 189.8118 
+#> Epoch: 30 Loss: 186.4892 
+#> Epoch: 40 Loss: 183.5863 
+#> Epoch: 50 Loss: 181.4086
 ```
 
 ### Make Predictions
@@ -106,8 +106,7 @@ a higher risk of the event of interest occurring sooner.
 ``` r
 risk_scores <- model$predict_risk(X)
 head(risk_scores)
-#> [1] -0.793719232  0.922863185 -1.618962288  0.656104028 -0.006884575
-#> [6]  0.337926924
+#> [1]  0.3127978  1.4249804 -0.8709887  2.0788488  1.5339806  1.6069432
 ```
 
 ## Creating an Explainer

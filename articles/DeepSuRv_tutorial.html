@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>DeepSuRv_tutorial • DeepSuRv</title>
+<title>Survival Analysis with Neural Networks, a DeepSuRv Tutorial • DeepSuRv</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="DeepSuRv_tutorial">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Survival Analysis with Neural Networks, a DeepSuRv Tutorial">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -34,7 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/deepsurv_survex.html">Integrating a DeepSuRv Model with survex Counterfactuals</a></li>
-    <li><a class="dropdown-item" href="../articles/DeepSuRv_tutorial.html">DeepSuRv_tutorial</a></li>
+    <li><a class="dropdown-item" href="../articles/DeepSuRv_tutorial.html">Survival Analysis with Neural Networks, a DeepSuRv Tutorial</a></li>
   </ul>
 </li>
       </ul>
@@ -56,7 +56,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>DeepSuRv_tutorial</h1>
+      <h1>Survival Analysis with Neural Networks, a DeepSuRv Tutorial</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/orspanish/DeepSuRv/blob/main/vignettes/DeepSuRv_tutorial.Rmd" class="external-link"><code>vignettes/DeepSuRv_tutorial.Rmd</code></a></small>
@@ -65,9 +65,153 @@
 
     
     
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p><code>DeepSuRv</code> is an R6 class that reimplements the Python <a href="https://github.com/jaredleekatzman/DeepSurv" class="external-link">DeepSurv</a> neural
+network for survival analysis using the <code>torch</code> package. It
+allows users to train a neural network on censored survival data,
+predict patient risk scores, and evaluate model performance with
+bootstrap confidence intervals for the concordance index (C-index).</p>
+<p>In this tutorial, we’ll demonstrate how to build, train, and evaluate
+a DeepSuRv model, while explaining the purpose and impact of each
+argument users can provide.</p>
+</div>
+<div class="section level2">
+<h2 id="dataset-preparation">Dataset Preparation<a class="anchor" aria-label="anchor" href="#dataset-preparation"></a>
+</h2>
+<p>In this example, we will be working with the WHAS500 dataset, which
+has 500 patients and 14 features. We begin by identifying our training
+and test datasets.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/orspanish/DeepSuRv" class="external-link">DeepSuRv</a></span><span class="op">)</span></span></code></pre></div>
-  </main>
+<code class="sourceCode R"><span><span class="va">whas_train</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_csv</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/train_test_data/whas_train.csv"</span>, package <span class="op">=</span> <span class="st">"DeepSuRv"</span><span class="op">)</span>,</span>
+<span>  show_col_types <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">whas_test</span> <span class="op">&lt;-</span> <span class="fu">readr</span><span class="fu">::</span><span class="fu"><a href="https://readr.tidyverse.org/reference/read_delim.html" class="external-link">read_csv</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/train_test_data/whas_test.csv"</span>, package <span class="op">=</span> <span class="st">"DeepSuRv"</span><span class="op">)</span>,</span>
+<span>  show_col_types <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>DeepSuRv expects numeric matrices for features (<code>X</code>) and
+numeric vectors for survival times (<code>t</code>) and event indicators
+(<code>e</code>). It is important to standardize the features so that
+each has mean 0 and standard deviation 1. This is the default setting in
+both this implementation of DeepSuRv and the original Python version.
+Standardization ensures that all features contribute equally to training
+and prevents features with larger scales from dominating the model’s
+learning.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">x_train</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu">select</span><span class="op">(</span><span class="va">whas_train</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">"x"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">t_train</span> <span class="op">&lt;-</span> <span class="va">whas_train</span><span class="op">$</span><span class="va">time</span></span>
+<span><span class="va">e_train</span> <span class="op">&lt;-</span> <span class="va">whas_train</span><span class="op">$</span><span class="va">event</span></span>
+<span></span>
+<span><span class="va">x_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fu">select</span><span class="op">(</span><span class="va">whas_test</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">"x"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">t_test</span> <span class="op">&lt;-</span> <span class="va">whas_test</span><span class="op">$</span><span class="va">time</span></span>
+<span><span class="va">e_test</span> <span class="op">&lt;-</span> <span class="va">whas_test</span><span class="op">$</span><span class="va">event</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="building-a-deepsurv-model">Building a DeepSuRv Model<a class="anchor" aria-label="anchor" href="#building-a-deepsurv-model"></a>
+</h2>
+<p>When users create a DeepSuRv object, they need to specify the number
+of input features,the structure of hidden layers, the dropout rate,
+learning rate, and the number of epochs for training. The
+<code>n_in</code> argument is where users define the number of input
+features, which should be the number of columns in their input
+dataset.<code>hidden_layers</code> is a numeric vector that defines the
+size of each hidden layer. More layers increase the model’s capacity to
+learn complex patterns but also increase the risk of overfitting.
+<code>dropout</code> is the fraction of neurons that are randomly turned
+off during each forward pass in model training to prevent overfitting.
+<code>learning_rate</code> is the step size of the optimizer function.
+It controls the speed of parameter updates during gradient descent. If
+it is set too high, training will become faster but may overshoot
+minima. <code>n_epochs</code> are the number of passes through the full
+training dataset. More epochs allow the model to converge to an optima
+but too many epochs may result in overfitting.</p>
+<p>Below we build a model using the WHAS500 dataset:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_whas</span> <span class="op">&lt;-</span> <span class="va"><a href="../reference/DeepSuRv.html">DeepSuRv</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>n_in <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">x_train</span><span class="op">)</span>,</span>
+<span>hidden_layers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">48</span>, <span class="fl">48</span><span class="op">)</span>, <span class="co"># Two hidden layers with 48 neurons each</span></span>
+<span>dropout <span class="op">=</span> <span class="fl">0.147</span>,</span>
+<span>learning_rate <span class="op">=</span> <span class="fl">0.067</span>,</span>
+<span>n_epochs <span class="op">=</span> <span class="fl">50</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="training-the-model">Training the Model<a class="anchor" aria-label="anchor" href="#training-the-model"></a>
+</h2>
+<p>Training involves passing the dataset’s features and survival
+outcomes to the network. The model uses the negative log partial
+likelihood of the Cox proportional hazards model as the loss function.
+The three required inputs, in order are, the standardized matrix of
+training features, survival (or follow-up) times, event indicators (1 if
+the event occurred, 0 if censored). There is a fourth optional logical
+argument, <code>verbose</code>, which prints the training loss values if
+desired.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model_whas</span><span class="op">$</span><span class="fu">set_standardization</span><span class="op">(</span><span class="va">x_train</span><span class="op">)</span></span>
+<span><span class="va">model_whas</span><span class="op">$</span><span class="fu">train</span><span class="op">(</span><span class="va">x_train</span>, <span class="va">t_train</span>, <span class="va">e_train</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Epoch: 10 Loss: 3334.747 </span></span>
+<span><span class="co">#&gt; Epoch: 20 Loss: 3320.217 </span></span>
+<span><span class="co">#&gt; Epoch: 30 Loss: 3303.784 </span></span>
+<span><span class="co">#&gt; Epoch: 40 Loss: 3296.047 </span></span>
+<span><span class="co">#&gt; Epoch: 50 Loss: 3277.537</span></span></code></pre></div>
+<p>During training, the network iteratively updates its weights to
+minimize the Cox loss. Each epoch processes all training samples once,
+and the optimizer adjusts the weights based on the gradient of the
+loss.</p>
+</div>
+<div class="section level2">
+<h2 id="making-predictions">Making Predictions<a class="anchor" aria-label="anchor" href="#making-predictions"></a>
+</h2>
+<p>After training, users can predict risk scores for new patients. The
+risk scores are relative, meaning that higher scores indicate higher
+predicted risk. This method automatically standardizes the new data
+using the mean and standard deviation computed from the training
+set.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="va">model_whas</span><span class="op">$</span><span class="fu">predict_risk</span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 2.685801 2.878598 1.947562 2.693764 2.503736 4.181186</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="evaluation-the-model-performance">Evaluation the Model Performance<a class="anchor" aria-label="anchor" href="#evaluation-the-model-performance"></a>
+</h2>
+<p>DeepSuRv provides a method to estimate the C-index with bootstrap
+confidence intervals, which quantifies how well the predicted risk
+scores align with the observed survival times. Users must provide the
+test-equivalent inputs used to train the dataset. That is, a
+standardized matrix of test features, survival (or follow-up) times,
+event indicators (1 if the event occurred, 0 if censored). Users also
+need to specify the number of bootstrap samples to compute confidence
+intervals with. The default number of bootstraps is set to 500. A
+built-in seed is used in the function for reproducibility. Users can
+change the seed with the <code>seed</code> argument. The more samples
+provided will yield a more stable estimate. The output gives the point
+estimate a 95% confidence interval of the C-index of the model. The
+C-index is a goodness of fit measure ranging from 0 (completely
+inaccurate) to 1 (perfectly accurate) that evaluates how often a model’s
+predictions are correctly ordered in comparison to the observations true
+order.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">whas_res</span> <span class="op">&lt;-</span> <span class="va">model_whas</span><span class="op">$</span><span class="fu">bootstrap_cindex</span><span class="op">(</span><span class="va">x_test</span>, <span class="va">t_test</span>, <span class="va">e_test</span><span class="op">)</span></span>
+<span><span class="va">whas_res</span></span>
+<span><span class="co">#&gt; $cindex</span></span>
+<span><span class="co">#&gt; concordant </span></span>
+<span><span class="co">#&gt;  0.8202332 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $lower</span></span>
+<span><span class="co">#&gt;      2.5% </span></span>
+<span><span class="co">#&gt; 0.7843786 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $upper</span></span>
+<span><span class="co">#&gt;     97.5% </span></span>
+<span><span class="co">#&gt; 0.8526612</span></span></code></pre></div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
