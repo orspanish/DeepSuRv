@@ -31,7 +31,7 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Clean temporary libraries
+      - name: Clean temporary libraries and old lockfiles
         run: rm -rf /tmp/Rtmp*/pkg-lib*
 
       - uses: r-lib/actions/setup-r-dependencies@v2
